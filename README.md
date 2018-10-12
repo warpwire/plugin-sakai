@@ -9,8 +9,8 @@ future versions of Sakai will be supported by this GitHub project.
 
 1. Modify `<sakai-installation-location>/webapps/library/editor/ckextraplugins/warpwirecontentitem/plugin.js` to change the variable `studentContributionUri` to contain the domain of your instance.
 
-1. Locate the `<sakai-installation-location>/webapps/sakai-portal-render-engine-impl/vm/<skin>/includeStandardHead.vm` file in your Sakai instance,
-where <skin> is the current skin in use for Sakai. In the default Sakai installation, this is the 'morpheus' skin. Within the site.vm file,
+1. Locate the `<sakai-installation-location>/webapps/sakai-portal-render-engine-impl/vm/<skin>/site.vm` file in your Sakai instance,
+where `<skin>` is the current skin in use for Sakai. In the default Sakai installation, this is the 'morpheus' skin. Within the `site.vm` file,
 locate the following section:
     ```javascript
     #if ($loggedIn)
