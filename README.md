@@ -1,3 +1,10 @@
+# Supported Sakai Versions
+
+This plugin is supported on Sakai 12. For earlier versions, please see our other projects, which support Sakai 10 and Sakai 11. All
+future versions of Sakai will be supported by this GitHub project.
+
+# Installation Instructions
+
 1. Extract contents of `plugin/` folder into the root folder of the Sakai installation location. This will put the plugin files in the appropriate locations.
 
 1. Modify `<sakai-installation-location>/webapps/library/editor/ckextraplugins/warpwirecontentitem/plugin.js` to change the variable `studentContributionUri` to contain the domain of your instance.
@@ -10,7 +17,6 @@ locate the following section:
     <script src="$!{portalCDNPath}/portal/scripts/sessionstoragemanager.js$!{portalCDNQuery}"></script>
 #end ## END of IF ($loggedIn)
 ```
-
 Add add the following line immediately before it:
 ```javascript
 <script type="text/javascript" language="JavaScript" src="/portal/scripts/warpwirecontentitem.js"></script>
@@ -20,7 +26,6 @@ Add add the following line immediately before it:
 ```javascript
 CKEDITOR.plugins.addExternal('contentitem',basePath+'contentitem/', 'plugin.js');
 ```
-
 add this line:
 ```javascript
 CKEDITOR.plugins.addExternal('warpwirecontentitem',basePath+'warpwirecontentitem/', 'plugin.js');
@@ -65,7 +70,6 @@ toolbar_Full:
 ```javascript
 ckconfig.extraPlugins+="sakaipreview,image2,audiorecorder,contentitem,movieplayer,wordcount,notification,autosave";
 ```
-
 to this line:
 ```javascript
 ckconfig.extraPlugins+="warpwirecontentitem,sakaipreview,image2,audiorecorder,contentitem,movieplayer,wordcount,notification,autosave";
