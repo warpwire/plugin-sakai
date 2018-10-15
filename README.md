@@ -77,6 +77,52 @@ locate the following section:
 
 1. Restart Sakai.
 
+# Installing the Plugin Universally in Sakai, to allow use in all courses
+
+1. Login to Sakai as the admin user. 
+
+2. Navigate to the 'Administrative Workspace'
+
+3. Click 'External Tools' in the left column navigation menu. 
+
+4. Click the 'Install LTI 1.1 Tool' text link on the far right of the page. 
+
+5. Fill out the External Tool fields as follows:
+    - __Site Id (Leave blank to make tool available in all sites)__ = Leave Blank
+    - __Tool Title (Above the tool)__ = Warpwire
+    - __Allow tool title to be changed__ = Do not allow
+    - __Choose a custom icon (leave empty to use the default icon)__ = leave empty
+    - __Button Text (Text in tool menu)__ = Warpwire
+    - __Allow button text to be changed__ = Do not allow
+    - __Description__ = leave blank
+    - __Tool Status__ = Enabled
+    - __Tool Visibility__ = Visible
+    - __Launch URL__ = [YOUR_DOMAIN].waprwire.com/api/ltix/
+    - __Allow launch URL to be changed__ = Do not allow
+    - __Launch Secret__ = this will be provided by Warpwire
+    - __Allow launch secret to be changed__ = Do not allow
+    - __Frame Height__ = leave blank
+    - __Tool Order (Only valid for tools placed in all sites)__ = leave blank
+    - __Allow frame height to be changed__ = Allow
+    - __Configuration dialog when tool is selected__ = Bypass configuration dialog
+    - __Privacy settings__ = check both boxes
+    - __Services__ = check the following:
+      - 'Allow External Tool to return grades,' 
+      - 'Provide roster to external tool,' 
+      - 'Allow External Tool to store settings data'
+    - __Indicate the following types of Content Item Selection launches this tool can handle [...]__ = Select the first three boxes:
+      - 'Allow the tool to be launched as a link (this is typically true for most tools),' 
+      - 'Allow external tool to configure itself (the tool must support the IMS Content-Item message),' 
+      - 'Allow the tool to be used from the rich text content editor to select contenet (the tool must support the IMS Content-Item message)
+    - __Launch in Popup__ = Never launch in Popup
+    - __Debug Launch__ = Never launch in debug mode
+    - __Custom Parameters__ = leave blank
+    - __SHA-256 Signature Support__ = Sign Launch with SHA-256
+    - __LTI 1.3 Support__ = Tool does not support LTI 1.3
+    - __lti13_settings__ = leave blank
+    - __Splash Screen__ = Leave blank
+6. Hit "Save"
+
 # Uninstalling the Legacy Warpwire Plugin
 
 1. First remove the legacy Warpwire tool from the Tools menus of all course that will use the new Warpwire Deep Linking.  Otherwise, you may end up with a reference to a non-existant course tool that cannot be easily removed.
