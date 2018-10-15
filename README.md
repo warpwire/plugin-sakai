@@ -76,3 +76,37 @@ locate the following section:
     ```
 
 1. Restart Sakai.
+
+# Uninstalling the Legacy Warpwire Plugin
+
+1. First remove the legacy Warpwire tool from the Tools menus of all course that will use the new Warpwire Deep Linking.  Otherwise, you may end up with a reference to a non-existant course tool that cannot be easily removed.
+
+2. Open the following file:
+`<sakai-installation-location>/webapps/library/editor/ckeditor.launch.js`
+
+    Remove the references to Warpwire in the following sections:
+    - `sakai.editor.enableResourceSearch`
+    - the `extraPlugins` variable
+    - the `addExternal` plugin function
+    - remove the `warpwireURL` variable and associated root directory
+
+    There should be 4 references to Warpwire. Remove them all.
+
+
+3. Remove the directory:
+`<sakai-installation-location>/webapps/library/editor/ckextraplugins/warpwire`
+
+4. Remove the file:
+`<sakai-installation-location>/webapps/portal/scripts/warpwire.js`
+
+5. In the file:
+    `<tomcat-installation-location>/sakai/portlets/IMSBLTIPortlet.xml`
+
+    If you have only one XML profile for the Warpwire tool, you may remove the `IMSBLTIPortlet.xml` completely.  Otherwise, remove all of the XML configurations for the Warpwire tool identified as `sakai.warpwire`
+
+6. In the file site.vm located either in:
+    `<sakai-installation-location>/webapps/sakai-portal-render-engine-impl/vm/<skin>/site.vm` or `<sakai-installation-location>/webapps/portal-render/vm/<skin>/site.vm`, where `<skin>` is the current skin in use for Sakai.
+
+    Remove the string `<script type=“text/javascript” src=“/portal/scripts/warpwire.js”></script>`
+
+7. Restart Sakai to remove the plugin
