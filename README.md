@@ -77,7 +77,7 @@ locate the following section:
 
 1. Restart Sakai.
 
-# Installing the Plugin Universally in Sakai, to allow use in all courses
+# Installing the Plugin in Sakai, so that it is available for all sites
 
 1. Login to Sakai as the admin user. 
 
