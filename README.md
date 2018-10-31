@@ -127,7 +127,7 @@ locate the following section:
 
 # Uninstalling the Legacy Warpwire Plugin
 
-1. First remove the legacy Warpwire tool from the Tools menus of all course that will use the new Warpwire Deep Linking.  Otherwise, you may end up with a reference to a non-existant course tool that cannot be easily removed.
+1. First remove the legacy Warpwire tool from the Tools menus of all courses that will use the new Warpwire Deep Linking plugin.  Otherwise, you may end up with a reference to a non-existant course tool that cannot be easily removed.
 
 2. Open the following file:
 `<sakai-installation-location>/webapps/library/editor/ckeditor.launch.js`
