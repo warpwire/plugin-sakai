@@ -60,6 +60,7 @@
 		$(window.top.document).find('[class*=-warpwire] iframe').each(function(key, element) {
 			$(element).attr('allowfullscreen', 'allowfullscreen');
 			$(element).attr('allow', 'autoplay *, encrypted-media, fullscreen;');
+			$(element).attr('frameBorder', '0');
 		});
 
 		var wwSakaiTool = $('.icon-sakai-warpwire');
@@ -117,7 +118,8 @@
 					height: $(contentItemIframe).attr('height'),
 					class: $(contentItemIframe).attr('class'),
 					allowfullscreen: 'allowfullscreen',
-					allow: 'autoplay *, encrypted-media, fullscreen;'
+					allow: 'autoplay *, encrypted-media, fullscreen;',
+					frameBorder: '0'
 				};
 
 				// replace the placeholder image with an iframe
@@ -228,6 +230,7 @@
 						width: 640,
 						height: 360,
 						border: 0,
+						frameborder: 0,
 						allowfullscreen: 'allowfullscreen',
 						allow: 'autoplay *, encrypted-media, fullscreen;'
 					};
@@ -263,7 +266,7 @@
 					iframeAuth.attr('id', 'ww_login_iframe');
 					iframeAuth.attr('height', '1px');
 					iframeAuth.attr('width', '1px');
-					iframeAuth.attr('style', 'left: -9999px; position: absolute;');
+					iframeAuth.attr('style', 'left: -9999px; position: absolute; border: none;');
 					iframeAuth.attr('src', wwSakaiTool.parent().attr('href'));
 
 					setTimeout(function() {
@@ -350,7 +353,7 @@
 				iframeAuth.attr('id', 'ww_login_iframe');
 				iframeAuth.attr('height', '1px');
 				iframeAuth.attr('width', '1px');
-				iframeAuth.attr('style', 'left: -9999px; position: absolute;');
+				iframeAuth.attr('style', 'left: -9999px; position: absolute; border: none;');
 				iframeAuth.attr('src', wwSakaiTool.parent().attr('href'));
 				setTimeout(function() {
 					$(wwIframe).append(iframeAuth);
