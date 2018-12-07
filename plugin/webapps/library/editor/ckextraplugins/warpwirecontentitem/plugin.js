@@ -16,12 +16,15 @@
 //  permissions and limitations under the License.
 //  
 **********************************************************************/
+var _wwPluginInstance = 1;
 CKEDITOR.plugins.add('warpwirecontentitem', {
 	requires: ['iframedialog'],
 	lang: ['en'],
 
 	// The plugin initialization logic goes inside this method.
 	init: function(editor) {
+		var _wwInstance = _wwPluginInstance;
+		_wwPluginInstance++;
 		// NOTE: enter URL of your Warpwire instance (if empty, students will not be able to contribute)
 		var studentContributionUri = '';
 
@@ -45,7 +48,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 			(typeof(sakai.editor.contentItemUrl) == 'undefined') || (sakai.editor.contentItemUrl.length <= 0)
 		) {
 			CKEDITOR.dialog.addIframe(
-				'WarpwireContentItemDialog',
+				'WarpwireContentItemDialog_'+_wwInstance,
 				'Select Content Item',
 				CKEDITOR.plugins.externals.warpwirecontentitem.dir + 'index.html', width, height,
 				function() {
@@ -296,7 +299,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 
 			// set up the iframe loader
 			CKEDITOR.dialog.addIframe(
-				'WarpwireContentItemDialog',
+				'WarpwireContentItemDialog_'+_wwInstance,
 				'Select Content Item',
 				sakai.editor.contentItemUrl, width, height,
 				loadFunction, {
@@ -366,6 +369,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 											// append the new image container
 											placementContainer.append(placementLink);
 										}
+										editor.focus();
 										editor.insertElement(placementContainer);
 									} else if(item['@type'] == 'ContentItem') {
 										// create a link element
@@ -400,7 +404,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 			);
 		}
 
-		editor.addCommand('WarpwireContentItemDialog', new CKEDITOR.dialogCommand('WarpwireContentItemDialog'));
+		editor.addCommand('WarpwireContentItemDialog_'+_wwInstance, new CKEDITOR.dialogCommand('WarpwireContentItemDialog_'+_wwInstance,));
 
 		// Create a toolbar button that executes the plugin command.
 		// http://docs.cksource.com/ckeditor_api/symbols/CKEDITOR.ui.html#addButton
@@ -408,7 +412,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 			// Toolbar button tooltip.
 			label: 'Insert Warpwire Media',
 			// Reference to the plugin command name.
-			command: 'WarpwireContentItemDialog',
+			command: 'WarpwireContentItemDialog_'+_wwInstance,
 			// Button's icon file path.
 			icon: this.path + 'images/warpwirecontentitem.png'
 		});
