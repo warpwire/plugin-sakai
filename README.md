@@ -74,6 +74,8 @@ locate the following section:
     ```javascript
     ckconfig.extraPlugins+="warpwirecontentitem,sakaipreview,image2,audiorecorder,contentitem,movieplayer,wordcount,notification,autosave";
     ```
+1. **NOTE:** if you are **building Sakai from source**, add the `ckconfig.extraPlugins` in the javascript file to the
+`sakai/library/pom.xml` configuration file. There will be a section called `<ckeditor-extra-plugins>`, simply put the value in this location and it will be compiled when Sakai is built from source.
 
 1. Restart Sakai.
 
