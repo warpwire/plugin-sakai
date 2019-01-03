@@ -99,7 +99,7 @@ locate the following section:
     - __Description__ = leave blank
     - __Tool Status__ = Enabled
     - __Tool Visibility__ = Visible
-    - __Launch URL__ = [YOUR_DOMAIN].waprwire.com/api/ltix/ (Note: this has changed from previous versions, be sure to include the x and the trailing slash!)
+    - __Launch URL__ = [YOUR_DOMAIN].waprwire.com/api/ltix/ ```(Note: this has changed from previous versions, be sure to include the x and the trailing slash!)```
     - __Allow launch URL to be changed__ = Do not allow
     - __Launch Key__ = this will be provided by Warpwire
     - __Allow launch Key to be changed__ = Do not allow
