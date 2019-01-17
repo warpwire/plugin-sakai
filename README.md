@@ -7,7 +7,7 @@ future versions of Sakai will be supported by this GitHub project.
 
 1. Extract contents of `plugin/` folder into the root folder of the Sakai installation location. This will put the plugin files in the appropriate locations.
 
-1. Modify `<sakai-installation-location>/webapps/library/editor/ckextraplugins/warpwirecontentitem/plugin.js` to change the variable `studentContributionUri` to contain the domain of your instance.
+1. Modify `<sakai-installation-location>/webapps/library/editor/ckextraplugins/warpwirecontentitem/plugin.js` to change the variable `studentContributionUri` to contain the domain of your instance. (Note: be sure to include the https:// prefix for the domain)
 
 1. Locate the `<sakai-installation-location>/webapps/sakai-portal-render-engine-impl/vm/<skin>/site.vm` file in your Sakai instance,
 where `<skin>` is the current skin in use for Sakai. In the default Sakai installation, this is the 'morpheus' skin. Within the `site.vm` file,
