@@ -58,9 +58,11 @@
 	var displayIframeContent = function(doc) {
 		// add allowfullscreen to the outer iframe container
 		$(window.top.document).find('[class*=-warpwire] iframe').each(function(key, element) {
-			$(element).attr('allowfullscreen', 'allowfullscreen');
-			$(element).attr('allow', 'autoplay *, encrypted-media, fullscreen;');
-			$(element).attr('frameBorder', '0');
+			$(element).attr('allowfullscreen', '');
+			$(element).attr('scrolling', '0');
+			$(element).attr('title', 'Warpwire Media');
+			$(element).attr('allow', 'autoplay *; encrypted-media *; fullscreen *;');
+			$(element).attr('frameborder', '0');
 		});
 
 		var wwSakaiTool = $('.icon-sakai-warpwire');
@@ -117,9 +119,11 @@
 					width: $(contentItemIframe).attr('width'),
 					height: $(contentItemIframe).attr('height'),
 					class: $(contentItemIframe).attr('class'),
-					allowfullscreen: 'allowfullscreen',
-					allow: 'autoplay *, encrypted-media, fullscreen;',
-					frameBorder: '0'
+					allowfullscreen: '',
+					title: 'Warpwire Media',
+					allow: 'autoplay *; encrypted-media *; fullscreen *;',
+					frameborder: '0',
+					scrolling: '0'
 				};
 
 				// replace the placeholder image with an iframe
@@ -231,8 +235,10 @@
 						height: 360,
 						border: 0,
 						frameborder: 0,
-						allowfullscreen: 'allowfullscreen',
-						allow: 'autoplay *, encrypted-media, fullscreen;'
+						scrolling: 0,
+						allowfullscreen: '',
+						title: 'Warpwire Media',
+						allow: 'autoplay *; encrypted-media *; fullscreen *;'
 					};
 
 					// the security policy is standard, render the corresponding iframe
