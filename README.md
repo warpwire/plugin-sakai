@@ -127,6 +127,10 @@ locate the following section:
     - __Splash Screen__ = Leave blank
 6. Hit "Save"
 
+![Sakai External Tool Settings 1 of 3](https://raw.githubusercontent.com/warpwire/plugin-sakai/master/tool%20settings%201.png)
+![Sakai External Tool Settings 2 of 3](https://raw.githubusercontent.com/warpwire/plugin-sakai/master/tool%20settings%202.png)
+![Sakai External Tool Settings 3 of 3](https://raw.githubusercontent.com/warpwire/plugin-sakai/master/tool%20settings%203.png)
+
 # Uninstalling the Legacy Warpwire Plugin
 
 1. First remove the legacy Warpwire tool from the Tools menus of all courses that will use the new Warpwire Deep Linking plugin.  Otherwise, you may end up with a reference to a non-existant course tool that cannot be easily removed.
