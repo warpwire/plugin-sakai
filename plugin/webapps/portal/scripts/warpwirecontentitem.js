@@ -1,6 +1,6 @@
 /**********************************************************************
 //
-// Warpwire Sakai Plugin 3.0.1
+// Warpwire Sakai Plugin 3.0.2
 //
 // Copyright 2018 Warpwire, Inc Licensed under the
 //  Educational Community License, Version 2.0 (the "License"); you may
