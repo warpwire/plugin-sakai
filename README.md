@@ -84,8 +84,10 @@ locate the following section:
 1. Login to Sakai as the admin user. 
 
 2. Navigate to the 'Administrative Workspace'
+![Sakai ADministrative Workspace](https://github.com/warpwire/plugin-sakai/blob/master/sakai-config-admin-workspace.jpg)
 
 3. Click 'External Tools' in the left column navigation menu. 
+![Sakai External Tools page](https://github.com/warpwire/plugin-sakai/blob/master/sakai-config-externaltools.jpg)
 
 4. Click the 'Install LTI 1.1 Tool' text link on the far right of the page. 
 
