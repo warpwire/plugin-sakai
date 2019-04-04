@@ -94,7 +94,7 @@ locate the following section:
 5. Fill out the External Tool fields as follows:
     - __Site Id (Leave blank to make tool available in all sites)__ = Leave Blank
     - __Tool Title (Above the tool)__ = Warpwire
-    - __Allow tool title to be changed__ = Do not allow
+    - __Allow tool title to be changed__ = Allow
     - __Choose a custom icon (leave empty to use the default icon)__ = leave empty
     - __Button Text (Text in tool menu)__ = Warpwire
     - __Allow button text to be changed__ = Do not allow
