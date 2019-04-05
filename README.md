@@ -9,18 +9,15 @@ future versions of Sakai will be supported by this GitHub project.
 
 1. Modify `<sakai-installation-location>/webapps/library/editor/ckextraplugins/warpwirecontentitem/plugin.js` to change the variable `studentContributionUri` to contain the domain of your instance. (Note: be sure to include the https:// prefix for the domain)
 
-1. Locate the `<sakai-installation-location>/webapps/sakai-portal-render-engine-impl/vm/<skin>/site.vm` file in your Sakai instance,
-where `<skin>` is the current skin in use for Sakai. In the default Sakai installation, this is the 'morpheus' skin. Within the `site.vm` file,
-locate the following section:
-    ```javascript
-    #if ($loggedIn)
-        <script src="$!{portalCDNPath}/portal/scripts/sessionstoragemanager.js$!{portalCDNQuery}"></script>
-    #end ## END of IF ($loggedIn)
+1. Locate the `<sakai-installation-location>/sakai/sakai.properties` and find the following comment block:
+    ```# Allows for adding additional code into the header of both the standard and pda portals,
+        # for example for adding in kaltura or other javascript code
+        # DEFAULT: Empty, no value
     ```
-    Add add the following line immediately before it:
-    ```javascript
-    <script type="text/javascript" language="JavaScript" src="/portal/scripts/warpwirecontentitem.js"></script>
-    ```
+    add this line:
+    ```portal.include.extrahead=<script type="text/javascript" language="JavaScript" src="/portal/scripts/warpwirecontentitem.js"></script>```
+
+
 
 1. In `<sakai-installation-location>/webapps/library/editor/ckeditor.launch.js` before the line that says
     ```javascript
