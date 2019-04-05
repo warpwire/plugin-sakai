@@ -1,8 +1,8 @@
 /**********************************************************************
 //
-// Warpwire Sakai Plugin 3.0.0
+// Warpwire Sakai Plugin 3.0.3
 //
-// Copyright 2018 Warpwire, Inc Licensed under the
+// Copyright 2019 Warpwire, Inc Licensed under the
 //  Educational Community License, Version 2.0 (the "License"); you may
 //  not use this file except in compliance with the License. You may
 //  obtain a copy of the License at
@@ -28,7 +28,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 		// NOTE: enter URL of your Warpwire instance (if empty, students will not be able to contribute)
 		var studentContributionUri = '';
 
-		var pluginVersion = '3.0.0';
+		var pluginVersion = '3.0.3';
 		var pluginEditor = this;
 		var attachedEvents = [];
 		var ContentItemIFrameWindow = null;
@@ -100,16 +100,14 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 								return(false);
 							}
 						}
-
-						// detect if the user is not a site maintainer
+						// detect if the user is not a site maintainer						
 						if(
 							iframeBody &&
 							iframeBody.innerText &&
-							iframeBody.innerText.toLowerCase().indexOf('/' + siteMaintainerText + '/g')
+							iframeBody.innerText.toLowerCase().indexOf(siteMaintainerText.toLowerCase()) !== -1
 						) {
 							siteMaintainer = false;
 						}
-
 						// the user is not a site maintainer
 						if((!warpwireToolFound) && (!siteMaintainer)) {
 							// there is no contribution uri defined for students
@@ -144,7 +142,12 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 							// get the local path for this editor
 							var localEditorPath = pluginEditor.path.replace('/(\/)+$/g', '');
 							editorPath = window.location.origin + localEditorPath.replace(window.location.origin, '');
-
+							
+							// ensure that a protocol is associated with the url
+							if (studentContributionUri.indexOf('https://') === -1) {
+								studentContributionUri = 'https://' + studentContributionUri;
+							}
+							
 							// build the complete editor path
 							editorPath = studentContributionUri.replace(/\/$/g, '') +
 								'/p/checkGroup/?uniqueId=' + sakaiUniqueId +
@@ -289,7 +292,9 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 							return(true);
 						} catch(e) {}
 					}
-				} catch(e) {}
+				} catch(e) {
+					console.log('Unhandled exception: '+e);
+				}
 
 				try {
 					// reset the visibility, to show the dialog if there has been a fallthrough
@@ -404,7 +409,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 			);
 		}
 
-		editor.addCommand('WarpwireContentItemDialog_'+_wwInstance, new CKEDITOR.dialogCommand('WarpwireContentItemDialog_'+_wwInstance,));
+		editor.addCommand('WarpwireContentItemDialog_'+_wwInstance, new CKEDITOR.dialogCommand('WarpwireContentItemDialog_'+_wwInstance));
 
 		// Create a toolbar button that executes the plugin command.
 		// http://docs.cksource.com/ckeditor_api/symbols/CKEDITOR.ui.html#addButton
@@ -488,7 +493,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 			// static message lookup table
 			var messageObject = {
 				'no_content_item_url': 'The ContentItem App Store is not properly setup. Please contact your Sakai Administrator.',
-				'no_warpwire_tool': '<!--No Warpwire tool installed / installed incorrectly Messaging--><p style="color: red;">Error: The Warpwire tool is either not installed or configured incorrectly. Please contact your Sakai Administrator.</p><!--hide and unfold content below--><p style="margin-top: 60px;">If you are the Sakai administrator, use the following steps to verify Warpwire plugin installation and configuration.</p><p style="margin-top: 60px;">First, navigate to the "Administration Workspace" under the sites dropdown:</p><img style="border: solid 1px #000;" src="' + getWWImage('sakai-admin') + '" /><p style="margin-top: 60px;">Second, click on "External Tools" in the left column navigation:</p><img style="border: solid 1px #000;" src="' + getWWImage('sakai-tool') + '" /><p style="margin-top: 60px;">Third, check that Warpwire is installed. It should look like the below screenshot:</p><img style="width: 600px; border: solid 1px #000;" src="' + getWWImage('sakai-universal') + '" /><p style="margin-top: 60px;">Fourth, if the plugin is not installed, click the "Install LTI 1.1 Tool" text link on the right side of the frame.</p><p style="margin-top: 60px;">Finally, either install from scratch with the following configuration, or use the table below to verify the configuration is correct:</p><img style="border: solid 1px #000;" src="' + getWWImage('sakai-external') + '" /><style>td { border: solid 1px #ddd; padding: 5px; vertical-align: top; }</style><table cellpadding="0" cellspacing="0" style="border: solid 1px #ddd; margin-top: 60px; width: 600px;"><tr><td style="font-weight: bold; background: #eee;">Option</td><td style="font-weight: bold; background: #eee;">Setting</td></tr><tr><td>Site Id</td><td>Leave Blank</td></tr><tr><td>Tool Title</td><td>Warpwire</td></tr><tr><td>Allow tool title to be changed</td><td>do not allow</td></tr><tr><td>Button Text (text in tool menu)</td><td>Warpwire</td></tr><tr><td>Allow button text to be changed</td><td>do not allow</td></tr><tr><td>Tool Status</td><td>enabled</td></tr><tr><td>Tool Visibility</td><td>visible</td></tr><tr><td>Launch URL</td><td>your institution\'s warpwire launch url</td></tr><tr><td>Allow Launch URL to be changed</td><td>allow</td></tr><tr><td>Launch Key</td><td>your launch key, provided by Warpwire</td></tr><tr><td>Allow Launch Key to be changed</td><td>do not allow</td></tr><tr><td>Launch Secret</td><td>your launch secret, provided by Warpwire</td></tr><tr><td>Allow launch secret to be changed</td><td>do not allow</td></tr><tr><td>Height</td><td>you choose, recommended 800px+</td></tr><tr><td>Allow height to be changed</td><td>do not allow</td></tr><tr><td>Configuration dialog when tool is selected</td><td>bypass configuration dialog</td></tr><tr><td>Privacy Settings</td><td><p>Check:</p><ul><li>"send user names to external tool"</li><li>"send email addresses to external tool"</li></ul></td></tr><tr><td>Services</td><td><p>Check all three:</p><ul><li>"allow external tool to return grades"</li><li>"provide roster to external tool" and</li><li>"allow external tool to store setting data"</li></ul></td></tr><tr><td>Indicate the following types of Content-Item Selection launches this tool can handle</td><td><p>Check the first three:</p><ul><li>"allow the tool to be launched as a link (this is typically true for most tools"</li><li>"allow external tool to configure itself (the tool must support the IMS content-item messag"</li><li>"allow the tool to be used from the rich content editor to select content (the tool must support the IMS content-item message"</li></ul></td></tr><tr><td>Launch in popup</td><td>never launch in popup</td></tr><tr><td>Debug launch</td><td>never launch in debug mode</td></tr><tr><td>Sha-256 signature support</td><td>sign launch with sha-256</td></tr><tr><td>lti 1.3 support</td><td>tool does not support lti 1.3</td></tr></table>',
+				'no_warpwire_tool': '<!--No Warpwire tool installed / installed incorrectly Messaging--><p style="color: red;">Error: The Warpwire tool is either not installed or configured incorrectly. Please contact your Sakai Administrator.</p><!--hide and unfold content below--><p style="margin-top: 60px;">If you are the Sakai administrator, use the following steps to verify Warpwire plugin installation and configuration.</p><p style="margin-top: 60px;">First, navigate to the "Administration Workspace" under the sites dropdown:</p><img style="border: solid 1px #000;" src="' + getWWImage('sakai-admin') + '" /><p style="margin-top: 60px;">Second, click on "External Tools" in the left column navigation:</p><img style="border: solid 1px #000;" src="' + getWWImage('sakai-tool') + '" /><p style="margin-top: 60px;">Third, check that Warpwire is installed. It should look like the below screenshot:</p><img style="width: 600px; border: solid 1px #000;" src="' + getWWImage('sakai-universal') + '" /><p style="margin-top: 60px;">Fourth, if the plugin is not installed, click the "Install LTI 1.1 Tool" text link on the right side of the frame.</p><p style="margin-top: 60px;">Finally, either install from scratch with the following configuration, or use the table below to verify the configuration is correct:</p><img style="border: solid 1px #000;" src="' + getWWImage('sakai-external') + '" /><style>td { border: solid 1px #ddd; padding: 5px; vertical-align: top; }</style><table cellpadding="0" cellspacing="0" style="border: solid 1px #ddd; margin-top: 60px; width: 600px;"><tr><td style="font-weight: bold; background: #eee;">Option</td><td style="font-weight: bold; background: #eee;">Setting</td></tr><tr><td>Site Id</td><td>Leave Blank</td></tr><tr><td>Tool Title</td><td>Warpwire</td></tr><tr><td>Allow tool title to be changed</td><td>allow</td></tr><tr><td>Button Text (text in tool menu)</td><td>Warpwire</td></tr><tr><td>Allow button text to be changed</td><td>do not allow</td></tr><tr><td>Tool Status</td><td>enabled</td></tr><tr><td>Tool Visibility</td><td>visible</td></tr><tr><td>Launch URL</td><td>your institution\'s warpwire launch url</td></tr><tr><td>Allow Launch URL to be changed</td><td>allow</td></tr><tr><td>Launch Key</td><td>your launch key, provided by Warpwire</td></tr><tr><td>Allow Launch Key to be changed</td><td>do not allow</td></tr><tr><td>Launch Secret</td><td>your launch secret, provided by Warpwire</td></tr><tr><td>Allow launch secret to be changed</td><td>do not allow</td></tr><tr><td>Height</td><td>you choose, recommended 800px+</td></tr><tr><td>Allow height to be changed</td><td>do not allow</td></tr><tr><td>Configuration dialog when tool is selected</td><td>bypass configuration dialog</td></tr><tr><td>Privacy Settings</td><td><p>Check:</p><ul><li>"send user names to external tool"</li><li>"send email addresses to external tool"</li></ul></td></tr><tr><td>Services</td><td><p>Check all three:</p><ul><li>"allow external tool to return grades"</li><li>"provide roster to external tool" and</li><li>"allow external tool to store setting data"</li></ul></td></tr><tr><td>Indicate the following types of Content-Item Selection launches this tool can handle</td><td><p>Check the first three:</p><ul><li>"allow the tool to be launched as a link (this is typically true for most tools"</li><li>"allow external tool to configure itself (the tool must support the IMS content-item messag"</li><li>"allow the tool to be used from the rich content editor to select content (the tool must support the IMS content-item message"</li></ul></td></tr><tr><td>Launch in popup</td><td>never launch in popup</td></tr><tr><td>Debug launch</td><td>never launch in debug mode</td></tr><tr><td>Sha-256 signature support</td><td>sign launch with sha-256</td></tr><tr><td>lti 1.3 support</td><td>tool does not support lti 1.3</td></tr></table>',
 				'not_site_maintainer': '<p style="color: red;">Error: The Warpwire tool is not configured to allow users who are not admins or site maintainers to add content. Please contact your Sakai Administrator to configure the Warpwire tool for universal contribution mode.</p>',
 				'generic': 'There appears to be an issue with the Warpwire plugin. Please contact your support team and provide the following reference number: <code>GENERIC_ERROR_01</code>'
 			};
