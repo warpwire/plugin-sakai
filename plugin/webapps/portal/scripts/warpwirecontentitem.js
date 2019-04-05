@@ -1,13 +1,13 @@
 /**********************************************************************
 //
-// Warpwire Sakai Plugin 3.0.2
+// Warpwire Sakai Plugin 3.0.3
 //
-// Copyright 2018 Warpwire, Inc Licensed under the
+// Copyright 2019 Warpwire, Inc Licensed under the
 //  Educational Community License, Version 2.0 (the "License"); you may
 //  not use this file except in compliance with the License. You may
 //  obtain a copy of the License at
 //
-// http://www.osedu.org/licenses/ECL-2.0
+// http://www.opensource.org/licenses/ECL-2.0
 //
 //  Unless required by applicable law or agreed to in writing,
 //  software distributed under the License is distributed on an "AS IS"
@@ -95,7 +95,6 @@
 			// check for contained iframe
 			if($(wwSpan).children('img')) {
 				var contentItemIframe = $(wwSpan).children('img')[0];
-
 				// ContentItem frames automatically provide launch context authorization
 				if(!$(contentItemIframe).hasClass('lti-content-item-iframe-launch')) {
 					return(true);
@@ -113,14 +112,18 @@
 					$(contentItemIframe).replaceWith($('<a>', linkAttributes));
 					return(true);
 				}
-
+				
+				var titleText = 'Warpwire Media';
+				if (contentItemIframe.alt != null && contentItemIframe.alt.length > 0) {
+					titleText = contentItemIframe.alt;
+				}
 				// setup the underlying iframe and apply additional security context conditions
 				var iframeAttributes = {
 					width: $(contentItemIframe).attr('width'),
 					height: $(contentItemIframe).attr('height'),
 					class: $(contentItemIframe).attr('class'),
 					allowfullscreen: '',
-					title: 'Warpwire Media',
+					title: titleText,
 					allow: 'autoplay *; encrypted-media *; fullscreen *;',
 					frameborder: '0',
 					scrolling: '0'
