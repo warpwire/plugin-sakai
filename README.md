@@ -10,12 +10,16 @@ future versions of Sakai will be supported by this GitHub project.
 1. Modify `<sakai-installation-location>/webapps/library/editor/ckextraplugins/warpwirecontentitem/plugin.js` to change the variable `studentContributionUri` to contain the domain of your instance. (Note: be sure to include the https:// prefix for the domain)
 
 1. Locate the `<sakai-installation-location>/sakai/sakai.properties` and find the following comment block:
-    ```# Allows for adding additional code into the header of both the standard and pda portals,
+    ``` 
+        # Allows for adding additional code into the header of both the standard and pda portals,
         # for example for adding in kaltura or other javascript code
         # DEFAULT: Empty, no value
     ```
     add this line:
-    ```portal.include.extrahead=<script type="text/javascript" language="JavaScript" src="/portal/scripts/warpwirecontentitem.js"></script>```
+    
+    ```
+    portal.include.extrahead=<script type="text/javascript" language="JavaScript" src="/portal/scripts/warpwirecontentitem.js"></script>
+    ```
 
 
 
