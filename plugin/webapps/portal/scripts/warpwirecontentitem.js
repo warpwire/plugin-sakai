@@ -1,6 +1,6 @@
 /**********************************************************************
 //
-// Warpwire Sakai Plugin 3.0.3
+// Warpwire Sakai Plugin 3.0.4
 //
 // Copyright 2019 Warpwire, Inc Licensed under the
 //  Educational Community License, Version 2.0 (the "License"); you may
@@ -196,6 +196,9 @@
 						return(true);
 					}
 
+					var localWidth = 640;
+					var localHeight = 360;
+
 					// provide context to the user regarding the link location	
 					if($(wwImage).attr('alt')) {
 						dataElements['alt'] = $(wwImage).attr('alt');
@@ -205,6 +208,13 @@
 						dataElements['alt'] = dataElements.src;
 					} else {
 						dataElements['alt'] = 'Link';
+					}
+					// set the custom width and height parameters
+					if($(wwImage).attr('width') && parseInt($(wwImage).attr('width')) > 0) {
+						localWidth = parseInt($(wwImage).attr('width'));
+					}
+					if($(wwImage).attr('height') && parseInt($(wwImage).attr('height')) > 0) {
+						localHeight = parseInt($(wwImage).attr('height'));
 					}
 
 					// the security context is restricted, do not render the iframe
@@ -234,8 +244,8 @@
 
 					var iframeAttributes = {
 						src: '',
-						width: 640,
-						height: 360,
+						width: localWidth,
+						height: localHeight,
 						border: 0,
 						frameborder: 0,
 						scrolling: 0,
