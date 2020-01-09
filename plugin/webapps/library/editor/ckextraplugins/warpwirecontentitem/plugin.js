@@ -341,7 +341,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 											(typeof(item.placementAdvice) == 'undefined') || (typeof(item.placementAdvice.presentationDocumentTarget) == 'undefined') || (item.placementAdvice.presentationDocumentTarget != 'iframe')
 										) {
 											var placementLink = new CKEDITOR.dom.element('a');
-											placementLink.setAttrigute('href', item.launch.replace('http://', 'https://'));
+											placementLink.setAttribute('href', item.launch.replace('http://', 'https://'));
 											placementLink.setAttribute('class', 'lti-content-item-launch');
 											placementLink.setText(item.title);
 											placementContainer.append(placementLink);
