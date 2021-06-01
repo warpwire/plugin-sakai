@@ -110,29 +110,44 @@ future versions of Sakai will be supported by this GitHub project.
     - __Allow launch secret to be changed__ = Do not allow
     - __Frame Height__ = leave blank
     - __Tool Order (Only valid for tools placed in all sites)__ = leave blank
-    - __Allow frame height to be changed__ = Allow
+    - __Allow frame height to be changed__ = Do not allow
     - __Configuration dialog when tool is selected__ = Bypass configuration dialog
     - __Privacy settings__ = check both boxes
     - __Services__ = check the following:
       - 'Allow External Tool to return grades,' 
+      - 'Allow External tool to create grade colums,'
       - 'Provide roster to external tool,' 
       - 'Allow External Tool to store settings data'
-    - __Indicate the following types of Content Item Selection launches this tool can handle [...]__ = Select the first three boxes:
-      - 'Allow the tool to be launched as a link (this is typically true for most tools),' 
-      - 'Allow external tool to configure itself (the tool must support the IMS Content-Item message),' 
-      - 'Allow the tool to be used from the rich text content editor to select contenet (the tool must support the IMS Content-Item message)
+    - __Tools can generally accept direct LTI Launches or a Content-Item/Deep-Link Selection launches. It is not common, but some       tools can handle both types of launch at one endpoint__ = check the following:
+      - 'The tool URL can recieve an LTI launch'
+      - 'The tool can recieve a Content-Item or Deep-Link launch'
+    - __Indicate where these tools are placed in Sakai__ = Select the first two boxes:
+      - 'Allow the tool to be one of the assignment types'
+      - 'Allow the tool to be used from the rich text editor'
     - __Launch in Popup__ = Never launch in Popup
     - __Debug Launch__ = Never launch in debug mode
     - __Custom Parameters__ = leave blank
-    - __SHA-256 Signature Support__ = Sign Launch with SHA-256
+    - __Manually map Sakai roles to IMS roles. Example: maintain:Learner;access:Learner__ = leave blank
     - __LTI 1.3 Support__ = Tool does not support LTI 1.3
     - __lti13_settings__ = leave blank
-    - __Splash Screen__ = Leave blank
+    - __Splash Screen (If this is non-blank it is shown before the tool is launched)__ = leave blank
+    - __If you select LTI 1.3 support while inserting a tool, after the tool is saved, you will be presented the Sakai configuration information to copy back to the tool. You can view this information in the tool view screen if you edit the tool information__ = 'Tool does not support LTI 1.3'
+    - __LTI 1.3 Platform Issuer (provide to tool)__ = Import LTI 1.3 Configuration (Sakai-format)
+    - __LTI 1.3 Client ID (provide to the tool)__= leave blank
+    - __LTI 1.3 Tool Keyset URL (provided by the tool)__= leave blank
+    - __LTI 1.3 Tool OpenID Connect/Initialization Endpoint (provided by the tool)__ = leave blank
+    - __LTI 1.3 Tool Redirect Endpoint(s) (comma seperated and provided by the tool)__ = leave blank
+    - __LTI 1.3 Platform Public Key (provided to the tool through our keyset)__ = leave blank
+    - __LTI 1.3 Tool Public Key (for tools that don't support keyset)__ = leave blank
+    - __LTI 1.3 Tool Private Key (for tools that don't support keyset)__ = leave blank
+    - __Type of LTI 1.1 Launch to use__ = Inherit System-Wide Default
 6. Hit "Save"
 
-![Sakai External Tool Settings 1 of 3](https://raw.githubusercontent.com/warpwire/plugin-sakai/master/tool%20settings%201.png)
-![Sakai External Tool Settings 2 of 3](https://raw.githubusercontent.com/warpwire/plugin-sakai/master/tool%20settings%202.png)
-![Sakai External Tool Settings 3 of 3](https://raw.githubusercontent.com/warpwire/plugin-sakai/master/tool%20settings%203.png)
+![sakai-config-tool-settings-1](https://user-images.githubusercontent.com/22532806/120385944-05cd0e00-c2f6-11eb-8cf0-e645926d324b.jpg)
+![sakai-config-tool-settings-2](https://user-images.githubusercontent.com/22532806/120385954-06fe3b00-c2f6-11eb-8e66-02c6f289ed9e.jpg)
+![sakai-config-tool-settings-3](https://user-images.githubusercontent.com/22532806/120385959-08c7fe80-c2f6-11eb-9ad9-f1bca3c84861.jpg)
+![sakai-config-tool-settings-4](https://user-images.githubusercontent.com/22532806/120385966-09f92b80-c2f6-11eb-92fc-59921c66e381.jpg)
+
 
 # Uninstalling the Legacy Warpwire Plugin
 
