@@ -100,7 +100,18 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 								return(false);
 							}
 						}
-						// detect if the user is not a site maintainer						
+						// Detect if the user is not a site maintainer
+						// Try first using the globally available Sakai Javascript vars
+						if (
+							window.portal &&
+							window.portal.user &&
+							window.portal.user.siteRole &&
+							window.portal.user.siteRole !== 'maintain'
+						) {
+							siteMaintainer = false;
+						}
+						// Also see if there's an error message in the content item list that
+						// would indicate the user is not a site maintainer.
 						if(
 							iframeBody &&
 							iframeBody.innerText &&
