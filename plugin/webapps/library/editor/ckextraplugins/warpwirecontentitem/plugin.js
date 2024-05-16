@@ -28,7 +28,7 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 		// NOTE: enter URL of your Warpwire instance (if empty, students will not be able to contribute)
 		var studentContributionUri = '';
 
-		var pluginVersion = '3.0.3';
+		var pluginVersion = '3.0.4';
 		var pluginEditor = this;
 		var attachedEvents = [];
 		var ContentItemIFrameWindow = null;
