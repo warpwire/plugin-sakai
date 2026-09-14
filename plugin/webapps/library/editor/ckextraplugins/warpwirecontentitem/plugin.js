@@ -65,6 +65,13 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 			);
 			// the content item return url is set up
 		} else {
+			// Sakai 25+ inserts intermediate same-origin launch pages (panel=
+			// ContentItemMain, then /access/lti prelaunch) between the tool picker
+			// and the cross-origin tool POST. Track that the launch has begun so
+			// loadFunction does not re-scan those pages and mistake them for a
+			// missing tool (which produced the 'no_warpwire_tool' error). Reset on
+			// each dialog open via onShow.
+			var warpwireLaunchInitiated = false;
 			function loadFunction() {
 				var self = this;
 
@@ -84,6 +91,12 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 
 					// this is the initial launch, load corresponding content information
 					if(typeof(ContentItemIFrameWindow.returned_content_item) == 'undefined') {
+						// Launch already underway: let the intermediate launch pages load
+						// without re-scanning (see warpwireLaunchInitiated note above).
+						if(warpwireLaunchInitiated) {
+							try { self._.dialog.getElement().getFirst().setStyle('visibility', 'visible'); } catch(e) {}
+							return(false);
+						}
 						// navigate to the Warpwire tool if found
 						var warpwireToolFound = false;
 						var siteMaintainer = true;
@@ -91,8 +104,9 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 
 						// iterate over content item tool links, and click on Warpwire tool link if found
 						for(var i = 0; i < links.length; i++) {
-							if(links[i].textContent.toLowerCase() == 'warpwire') {
+							if(links[i].textContent.toLowerCase().trim() == 'warpwire') {
 								links[i].click();
+								warpwireLaunchInitiated = true;
 								iframeBody.innerHTML = '';
 								// reset the visibility, to show the dialog
 								self._.dialog.getElement().getFirst().setStyle('visibility', 'visible');
@@ -323,6 +337,8 @@ CKEDITOR.plugins.add('warpwirecontentitem', {
 					// UI flashing
 					onShow: function() {
 						var self = this;
+						// reset launch tracking so each open starts a fresh selection
+						warpwireLaunchInitiated = false;
 						try {
 							self.getElement().getFirst().setStyle('visibility', 'hidden');
 						} catch(e) {}
