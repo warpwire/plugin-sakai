@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<head>
@@ -30,33 +30,47 @@
 		</style>
 
 		<script type="text/javascript">
-		// function to get url parameters from a given input string
-		var GetURLParameter = (sParam, sPageURL) => {
-			if (typeof sPageURL === "undefined")
-				sPageURL = window.location.search.substring(1);
-			else {
-				sPageURL = sPageURL.substring(sPageURL.indexOf("?") + 1);
+		// Read a single query parameter from the current URL (or a supplied one).
+		// Splits on the FIRST "=" only, so values that themselves contain "="
+		// (base64 / encoded tokens) are preserved intact rather than truncated.
+		const GetURLParameter = (sParam, sPageURL) => {
+			let src = sPageURL;
+			if (typeof src === "undefined") {
+				src = window.location.search.substring(1);
+			} else {
+				src = src.substring(src.indexOf("?") + 1);
 			}
-			var sURLVariables = sPageURL.split("&");
-			console.dir(sURLVariables);
-			for (let i = 0; i < sURLVariables.length; i++) {
-				const sParameterName = sURLVariables[i].split("=");
-				if (sParameterName[0] === sParam) {
-					return sParameterName[1];
+			const pairs = src.split("&");
+			for (let i = 0; i < pairs.length; i++) {
+				const eq = pairs[i].indexOf("=");
+				const name = eq === -1 ? pairs[i] : pairs[i].substring(0, eq);
+				if (name === sParam) {
+					return eq === -1 ? "" : pairs[i].substring(eq + 1);
 				}
 			}
+			return null;
 		};
-		var _postData = () => {
+
+		// Post the returned Warpwire selection back to the editor. This return
+		// page is served from the Sakai origin (same origin as the parent editor
+		// page), so we target parent.postMessage at our own origin instead of the
+		// "*" wildcard the old code used - the receiver still validates origin and
+		// the per-launch pluginId token, but this closes the sender-side leak.
+		// window.close() was removed: this page runs inside the launch iframe, not
+		// a popup, so closing is the editor's job once it receives the message.
+		const postData = () => {
 			try {
-				const jsonData = decodeURIComponent(GetURLParameter("jsonData"));
+				const rawJson = GetURLParameter("jsonData");
+				const jsonData = rawJson == null ? "" : decodeURIComponent(rawJson);
 				const pluginId = GetURLParameter("pluginId");
 				parent.postMessage(
 					{ message: "deliverResult", pluginId: pluginId, result: jsonData },
-					"*",
+					window.location.origin,
 				);
-				window.close();
 			} catch (e) {
-				console.dir(e);
+				if (window.console && console.warn) {
+					console.warn("[warpwire] warpwire.html postData failed:", e);
+				}
 			}
 		};
 		</script>

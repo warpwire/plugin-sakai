@@ -1,0 +1,15 @@
+{
+  "name": "warpwire-sakai-plugin-tests",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser-based unit tests for the Warpwire Sakai plugin's portal renderer and return-handshake page.",
+  "scripts": {
+    "test": "node renderer.test.mjs && node warpwire-html.test.mjs",
+    "test:renderer": "node renderer.test.mjs",
+    "test:html": "node warpwire-html.test.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

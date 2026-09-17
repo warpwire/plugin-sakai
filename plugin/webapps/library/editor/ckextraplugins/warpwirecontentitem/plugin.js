@@ -25,15 +25,37 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 	init: function (editor) {
 		var _wwInstance = _wwPluginInstance;
 		_wwPluginInstance++;
-		// NOTE: enter URL of your Warpwire instance (if empty, students will not be able to contribute)
-		var studentContributionUri = "";
 
-		var _pluginVersion = "3.0.4";
-		var attachedEvents = [];
+		// Shared runtime: version, config, diagnostics. Falls back to safe no-ops
+		// if warpwire.js failed to load, and says so. This replaces the old
+		// hand-edited source constants (studentContributionUri, _pluginVersion),
+		// which were lost on every Sakai upgrade (design D5).
+		var W = window.WARPWIRE || {
+			version: "unknown",
+			cfg: function () {
+				return {};
+			},
+			log: function () {},
+			warn: function () {
+				try {
+					console.warn.apply(
+						console,
+						["[warpwire]"].concat([].slice.call(arguments)),
+					);
+				} catch (_e) {}
+			},
+		};
+		var wwCfg = W.cfg();
+		// Single source of truth for the version (fixes the sakai_undefined bug).
+		var pluginVersion = W.version || "unknown";
+		// Student-contribution destination comes from config, not source (D5/D7).
+		var studentContributionUri = wwCfg.contributionUri || "";
+
 		var ContentItemIFrameWindow = null;
-
-		// list of state detection variables
-		var siteMaintainerText = "must be site maintainer";
+		// Removable reference to the postMessage handler so it can actually be
+		// detached (the old code passed a fresh function to removeEventListener
+		// and leaked the real listener).
+		var wwMessageHandler = null;
 
 		// a local instance of the plugin editor
 		var pluginEditor = this;
@@ -79,12 +101,44 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 				var iframe = document.getElementById(this._.frameId);
 				ContentItemIFrameWindow = iframe.contentWindow;
 
-				// hide all of the dialog button on the editor chooser menu
-				Object.keys(this._.dialog._.buttons).forEach((key) => {
+				// Hide the dialog's OK/Cancel while the Warpwire chooser drives the
+				// flow. Uses the public dialog.getButton() API instead of reaching
+				// into private _.buttons internals (design D1/D7).
+				["ok", "cancel"].forEach((id) => {
 					try {
-						this._.dialog._.buttons[key].getElement().hide();
+						this._.dialog.getButton(id).getElement().hide();
 					} catch (_e) {}
 				});
+
+				// The returned content item is only readable once the picker iframe
+				// has navigated back to the Sakai origin; while the Warpwire chooser
+				// is open the iframe is cross-origin and reading it throws. Probe it
+				// safely so we can tell "launch still underway" from "result is back".
+				let returnedContentItem;
+				let pickerCrossOrigin = false;
+				try {
+					returnedContentItem = ContentItemIFrameWindow.returned_content_item;
+				} catch (_e) {
+					pickerCrossOrigin = true;
+				}
+
+				// Launch underway (chooser open cross-origin, or a same-origin
+				// intermediate launch page with no result yet): keep the dialog
+				// visible and don't re-scan. We only bail here when there is NO
+				// returned content item, so the result path below still runs once
+				// Warpwire posts the selection back.
+				if (
+					warpwireLaunchInitiated &&
+					(pickerCrossOrigin || typeof returnedContentItem === "undefined")
+				) {
+					try {
+						this._.dialog
+							.getElement()
+							.getFirst()
+							.setStyle("visibility", "visible");
+					} catch (_e) {}
+					return false;
+				}
 
 				try {
 					// use the editor document link structure to launch the appropriate link
@@ -92,56 +146,80 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 						ContentItemIFrameWindow.document.getElementsByTagName("a");
 
 					// this is the initial launch, load corresponding content information
-					if (
-						typeof ContentItemIFrameWindow.returned_content_item === "undefined"
-					) {
-						// Launch already underway: let the intermediate launch pages load
-						// without re-scanning (see warpwireLaunchInitiated note above).
-						if (warpwireLaunchInitiated) {
-							try {
-								this._.dialog
-									.getElement()
-									.getFirst()
-									.setStyle("visibility", "visible");
-							} catch (_e) {}
-							return false;
-						}
+					if (typeof returnedContentItem === "undefined") {
 						// navigate to the Warpwire tool if found
 						let warpwireToolFound = false;
 						let siteMaintainer = true;
 						const iframeBody =
 							ContentItemIFrameWindow.document.getElementsByTagName("body")[0];
 
-						// iterate over content item tool links, and click on Warpwire tool link if found
+						// Locate the Warpwire tool by the STRUCTURE of its content-item picker
+						// link (the ContentItemMain launch carrying a tool_id), not by matching
+						// the human-visible label text. When Warpwire is the only content-item
+						// tool (the common case) this is independent of the tool's display
+						// label, so localization/renaming/whitespace can't break it (D4). With
+						// multiple content-item tools, prefer the one whose launch resolves to
+						// the configured Warpwire instance host.
+						const candidates = [];
 						for (let i = 0; i < links.length; i++) {
-							if (links[i].textContent.toLowerCase().trim() === "warpwire") {
-								links[i].click();
-								warpwireLaunchInitiated = true;
-								iframeBody.innerHTML = "";
-								// reset the visibility, to show the dialog
+							const href = links[i].getAttribute("href") || "";
+							if (
+								/panel=ContentItemMain/i.test(href) &&
+								/[?&]tool_id=\d+/i.test(href)
+							) {
+								candidates.push(links[i]);
+							}
+						}
+						let warpwireLink = null;
+						if (candidates.length === 1) {
+							warpwireLink = candidates[0];
+						} else if (candidates.length > 1) {
+							const host = (wwCfg.instanceDomain || "")
+								.replace(/^https?:\/\//, "")
+								.replace(/\/.*$/, "")
+								.toLowerCase();
+							if (host) {
+								warpwireLink = candidates.find(
+									(a) =>
+										`${a.getAttribute("href") || ""} ${a.textContent || ""}`
+											.toLowerCase()
+											.indexOf(host) !== -1,
+								);
+							}
+							if (!warpwireLink) {
+								warpwireLink =
+									candidates.find(
+										(a) =>
+											(a.textContent || "")
+												.toLowerCase()
+												.indexOf("warpwire") !== -1,
+									) || candidates[0];
+								W.warn(
+									"multiple content-item tools found; disambiguation fell back to label/first",
+								);
+							}
+						}
+						if (warpwireLink) {
+							warpwireLink.click();
+							warpwireLaunchInitiated = true;
+							iframeBody.innerHTML = "";
+							// reset the visibility, to show the dialog (no public CKEditor API
+							// for the initial visibility flash; guarded private access)
+							try {
 								this._.dialog
 									.getElement()
 									.getFirst()
 									.setStyle("visibility", "visible");
-								warpwireToolFound = true;
-								return false;
-							}
+							} catch (_e) {}
+							warpwireToolFound = true;
+							W.log("launched Warpwire content-item tool");
+							return false;
 						}
 						// Detect if the user is not a site maintainer
 						// Try first using the globally available Sakai Javascript vars
 						if (
 							window.portal?.user?.siteRole &&
 							window.portal.user.siteRole !== "maintain"
-						) {
-							siteMaintainer = false;
-						}
-						// Also see if there's an error message in the content item list that
-						// would indicate the user is not a site maintainer.
-						if (
-							iframeBody?.innerText &&
-							iframeBody.innerText
-								.toLowerCase()
-								.indexOf(siteMaintainerText.toLowerCase()) !== -1
 						) {
 							siteMaintainer = false;
 						}
@@ -193,162 +271,127 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 								studentContributionUri = `https://${studentContributionUri}`;
 							}
 
-							// build the complete editor path
-							editorPath =
-								studentContributionUri.replace(/\/$/g, "") +
+							// Build the /p/checkGroup/ contribution redirect (design D7). The version
+							// tag comes from the single config source, fixing the sakai_undefined bug.
+							const contributionUrl =
+								studentContributionUri.replace(/\/+$/g, "") +
 								"/p/checkGroup/?uniqueId=" +
-								sakaiUniqueId +
+								encodeURIComponent(sakaiUniqueId) +
 								"&externalContext=sakai_" +
-								this.pluginVersion +
+								encodeURIComponent(pluginVersion) +
 								"&pluginLaunchReturnUrl=" +
 								encodeURIComponent(`${editorPath}/html/warpwire.html`) +
 								"&pluginId=" +
 								pluginEditor.pluginId;
 
-							// launch the content of the panel window this frame context
 							iframeBody.innerHTML = "";
 
-							// attach an event to listen to the post message
-							addLocalEvent(window, "message", (e) => {
-								// the plugin did not return an authorized token
+							// Keep a removable reference to the handler so it can actually be detached
+							// (the old code passed a fresh function to removeEventListener and leaked
+							// the real listener). Accept the return handshake ONLY from our own origin
+							// and only when it carries the per-launch token (CSRF/origin guard, D7).
+							const wwDialog = this._.dialog;
+							wwMessageHandler = (e) => {
 								if (
 									e.origin !== location.origin ||
+									!e.data ||
 									e.data.pluginId !== pluginEditor.pluginId
 								) {
-									console.log("Security context validation failed");
-									return false;
+									W.warn(
+										"ignored contribution return: origin/token validation failed",
+									);
+									return;
 								}
-
-								// get the event package
 								if (e.data.message === "deliverResult" && e.data.result) {
-									// get the Warpwire asset information
 									try {
 										const assets = JSON.parse(e.data.result);
 										for (let i = 0; i < assets.length; i++) {
-											// create a new CKEditor iframe node
-											const iframeNode = new CKEDITOR.dom.element("span");
-											const _localSrc = "";
+											const asset = assets[i];
 											let localImage = "";
 											let localWidth = 90;
 											let localHeight = 90;
 											let localTitle = "";
-
-											for (var prop in assets[i].iframe) {
-												const tempFrameData = assets[i].iframe;
+											for (const prop in asset.iframe) {
 												if (prop === "_ww_src") {
-													// the url must always be over TLS
-													tempFrameData[prop] = tempFrameData[prop].replace(
-														"http://",
-														"https://",
-													);
+													asset.iframe[prop] = String(
+														asset.iframe[prop],
+													).replace("http://", "https://");
 												}
 												if (
 													prop === "_ww_width" &&
-													parseInt(tempFrameData[prop], 10) > 0
+													parseInt(asset.iframe[prop], 10) > 0
 												) {
-													localWidth = tempFrameData[prop];
+													localWidth = asset.iframe[prop];
 												}
 												if (
 													prop === "_ww_height" &&
-													parseInt(tempFrameData[prop], 10) > 0
+													parseInt(asset.iframe[prop], 10) > 0
 												) {
-													localHeight = tempFrameData[prop];
+													localHeight = asset.iframe[prop];
 												}
 											}
-
 											if (
-												assets[i].assetData != null &&
-												assets[i].assetData.title != null
+												asset.assetData != null &&
+												asset.assetData.title != null
 											) {
-												localTitle = assets[i].assetData.title;
+												localTitle = asset.assetData.title;
 											}
-
-											if (assets[i]._ww_img != null) {
-												localImage = assets[i]._ww_img;
+											if (asset._ww_img != null) {
+												localImage = asset._ww_img;
 											}
-
-											// build the iframe node and attach to the element
+											const iframeNode = new CKEDITOR.dom.element("span");
 											iframeNode.setAttribute("class", "_ww_iframe_embed");
 											iframeNode.setAttribute(
 												"rel",
-												JSON.stringify(assets[i].iframe),
+												JSON.stringify(asset.iframe),
 											);
-											iframeImage = new CKEDITOR.dom.element("img");
+											const iframeImage = new CKEDITOR.dom.element("img");
 											iframeImage.setAttribute("alt", localTitle);
 											iframeImage.setAttribute("width", localWidth);
 											iframeImage.setAttribute("height", localHeight);
 											iframeImage.setAttribute("class", "_ww_img");
 											iframeImage.setAttribute(
 												"src",
-												localImage.replace("http://", "https://"),
+												String(localImage).replace("http://", "https://"),
 											);
-											// add the image to the span
 											iframeNode.append(iframeImage);
 											if (editor.mode === "wysiwyg") {
 												editor.insertElement(iframeNode);
 											}
 										}
 										e.data.message = "";
-									} catch (e) {
-										console.log(`Unable to parse data due to: ${e}`);
+									} catch (err) {
+										W.warn("unable to parse contribution result:", err);
 									}
-
-									// clear the contents of the frame
-									iframe.src = "about:blank;";
+									iframe.src = "about:blank";
 									iframeBody.innerHTML = "";
-
-									// close the CKEditor window
-									this._.dialog._.buttons.ok.click();
-
-									// remove the event listener
-									removeLocalEvent(window, "message", (_e) => {});
+									// close the dialog via a supported call (was private _.buttons.ok.click)
+									try {
+										wwDialog.hide();
+									} catch (_e) {}
+									window.removeEventListener("message", wwMessageHandler);
+									wwMessageHandler = null;
 								}
-							});
+							};
+							window.addEventListener("message", wwMessageHandler);
 
-							// replace the URI context completely with the older plugin context
-							iframe.src = editorPath;
-							this._.dialog
-								.getElement()
-								.getFirst()
-								.setStyle("visibility", "visible");
-
-							// register an event listen to receive the message
-							let onSameDomain = false;
-							const pluginCheckInterval = setInterval(() => {
-								// the html of the document can be parsed
-								var parseHtml = null;
-								try {
-									// allows for universal context detection
-									const _localDoc =
-										iframe.contentDocument || iframe.contentWindow.document;
-									parseHtml = doc.body.innerHTML;
-									if (parseHtml != null) {
-										onSameDomain = true;
-									}
-
-									// ask for the iframes document results
-									if (onSameDomain) {
-										clearInterval(pluginCheckInterval);
-										iframe.document.postMessage(
-											{
-												message: "requestResult",
-											},
-											"*",
-										);
-									}
-								} catch (_e) {
-									// the iframe was closed
-									if (iframe.closed) {
-										clearInterval(pluginCheckInterval);
-										return true;
-									}
-								}
-							}, 500);
+							// load the contribution UI into the picker iframe and reveal the dialog
+							iframe.src = contributionUrl;
+							try {
+								wwDialog
+									.getElement()
+									.getFirst()
+									.setStyle("visibility", "visible");
+							} catch (_e) {}
 
 							return true;
 						}
-						// Warpwire tool is not found - alert the user to this fact
+						// Warpwire tool is not found - alert the user to this fact,
+						// and leave an actionable diagnostic (design D4/§3.8/§1.3).
 						else if (!warpwireToolFound) {
+							W.warn(
+								"Warpwire content-item tool not found in the editor picker; it is not installed/registered as an LTI 1.1 content-editor tool.",
+							);
 							iframeBody.innerHTML = "";
 							iframeBody.appendChild(renderMessage("no_warpwire_tool"));
 							// reset the visibility, to show the dialog
@@ -368,14 +411,15 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 						// there are no returned content items - short circuit
 						return false;
 					} else {
-						// we have returned content items - click the 'OK' button
+						// we have returned content items - confirm via the public OK
+						// button API (was private _.buttons.ok.click)
 						try {
-							this._.dialog._.buttons.ok.click();
+							this._.dialog.getButton("ok").click();
 							return true;
 						} catch (_e) {}
 					}
 				} catch (e) {
-					console.log(`Unhandled exception: ${e}`);
+					W.warn("unhandled exception in Warpwire loadFunction:", e);
 				}
 
 				try {
@@ -521,11 +565,11 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 										// insert the image into the editor
 										editor.insertElement(placementImage);
 									} else {
-										console.log(`Not handled: ${item["@type"]}`);
+										W.log("content item type not handled:", item["@type"]);
 									}
 								} catch (e) {
-									console.log(`Unhandled Content Item Exception: ${e}`);
-									console.log(e.stack);
+									W.warn("unhandled content-item insertion exception:", e);
+									if (e && e.stack) W.warn(e.stack);
 								}
 							}
 						}
@@ -550,76 +594,23 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 			icon: `${this.path}images/warpwirecontentitem.png`,
 		});
 
-		// safely attaches an event to the DOM
-		function addLocalEvent(element, event, fn, bubble) {
-			if (attachedEvents[`${element}.${event}`] === true) {
-				return true;
-			}
-
-			if ("addEventListener" in element) {
-				try {
-					element.addEventListener(event, fn, bubble);
-					attachedEvents[`${element}.${event}`] = true;
-				} catch (_e) {
-					// unable to attach the event listener, the event can be attached locally
-					if (typeof fn === "object" && fn.handleEvent) {
-						element.addEventListener(
-							event,
-							(e) => {
-								fn.handleEvent.call(fn, e);
-							},
-							bubble,
-						);
-					} else {
-						throw $e;
-					}
-				}
-			} else if ("attachEvent" in element) {
-				// callback can handle the event properly
-				if (typeof fn === "object" && fn.handleEvent) {
-					element.attachEvent(`on${event}`, () => {
-						fn.handleEvent.call(fn);
-						attachedEvents[`${element}.${event}`] = true;
-					});
-				} else {
-					element.attachEvent(`on${event}`, fn);
-					attachedEvents[`${element}.${event}`] = true;
-				}
-			}
-		}
-
-		// safely removes an event to the DOM
-		function removeLocalEvent(element, event, fn, bubble) {
-			if ("removeEventListener" in element) {
-				try {
-					element.removeEventListener(event, fn, bubble);
-					attachedEvents[`${element}.${event}`] = false;
-				} catch (_e) {
-					// unable to attach the event listener, the event can be attached locally
-					if (typeof fn === "object" && fn.handleEvent) {
-						element.removeEventListener(
-							event,
-							(e) => {
-								fn.handleEvent.call(fn, e);
-								attachedEvents[`${element}.${event}`] = false;
-							},
-							bubble,
-						);
-					} else {
-						throw $e;
-					}
-				}
-			} else if ("detachEvent" in element) {
-				// callback can handle the event properly
-				if (typeof fn === "object" && fn.handleEvent) {
-					element.detachEvent(`on${event}`, () => {
-						fn.handleEvent.call(fn);
-						attachedEvents[`${element}.${event}`] = fale;
-					});
-				} else {
-					element.detachEvent(`on${event}`, fn);
-					attachedEvents[`${element}.${event}`] = false;
-				}
+		// Whitelist the markup this plugin inserts so CKEditor's Advanced Content
+		// Filter doesn't strip the embed's span/img/anchor (or their classes and
+		// rel data) on edit/save. Without this, a re-edit could drop the
+		// <img class="lti-content-item-iframe-launch"> and leave an empty embed
+		// span. Additive (tagged with the feature name); a no-op when the editor
+		// runs with ACF disabled (allowedContent: true).
+		if (editor.filter?.allow) {
+			try {
+				editor.filter.allow(
+					"span(_ww_iframe_embed)[rel,style];" +
+						"img(lti-content-item-iframe-launch,_ww_img)[!src,alt,width,height];" +
+						"a(lti-content-item-launch,lti-contentitem)[!href,target]",
+					"warpwirecontentitem",
+					true,
+				);
+			} catch (_e) {
+				W.warn("could not register allowedContent for Warpwire embeds:", _e);
 			}
 		}
 

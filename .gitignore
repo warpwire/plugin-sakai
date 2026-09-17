@@ -1,0 +1,4 @@
+# Node test tooling (test/) — see test/README.md
+node_modules/
+test/node_modules/
+test/package-lock.json
