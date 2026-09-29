@@ -38,7 +38,8 @@ R uninstall >/dev/null; check "uninstall after update is byte-identical" 'cmp -s
 printf '%s' "$(cat "$S/orig.js")" > "$L"; cp "$L" "$S/nonl.js"
 R install >/dev/null; R uninstall >/dev/null; check "file without trailing newline round-trips" 'cmp -s "$L" "$S/nonl.js"'
 cp "$S/orig.js" "$L"; chmod 640 "$L"; R install >/dev/null
-check "file mode preserved" '[ "$(stat -f %Lp "$L" 2>/dev/null || stat -c %a "$L")" = 640 ]'
+# GNU stat (Linux) first: on GNU, "stat -f" means filesystem status, not format.
+check "file mode preserved" '[ "$(stat -c %a "$L" 2>/dev/null || stat -f %Lp "$L")" = 640 ]'
 R status >/dev/null; rc=$?; check "status fails when webapp + properties missing" '[ $rc -eq 1 ]'
 mkdir -p "$S/cb/webapps/warpwire/editor/warpwirecontentitem" "$S/cb/webapps/warpwire/scripts" "$S/cb/sakai"
 touch "$S/cb/webapps/warpwire/editor/warpwirecontentitem/plugin.js" "$S/cb/webapps/warpwire/scripts/warpwire.js"
