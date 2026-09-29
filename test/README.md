@@ -7,14 +7,14 @@ the shipped source directly (no build step) in a headless Chromium via
 ## What's covered
 
 - **`renderer.test.mjs`** — the portal renderer
-  (`plugin/webapps/portal/scripts/warpwire.js` + `warpwirecontentitem.js`).
+  (`webapp/scripts/warpwire.js` + `warpwirecontentitem.js`).
   Asserts each embed kind renders correctly: content-item launch embeds, legacy
   `_ww_src` embeds (including the `addUrlArgument` URL fix), malformed data
   degrading to a safe placeholder, and content-item embeds whose `<img>` was
   stripped or de-classed still rendering as a launch.
   _Note: pulls jQuery from a CDN, so this test needs network access._
 - **`warpwire-html.test.mjs`** — the return-handshake page
-  (`.../warpwirecontentitem/html/warpwire.html`). Serves it from a throwaway
+  (`webapp/editor/warpwirecontentitem/html/warpwire.html`). Serves it from a throwaway
   localhost server and asserts a value containing a literal `=` round-trips
   through the `postMessage` handshake intact, with no error thrown. Fully
   self-contained.

@@ -1,0 +1,71 @@
+# CI for the Warpwire Sakai plugin.
+#
+# This file is mirrored to the public GitHub repository along with the rest of
+# the code, so it refers to CI variables by name only. Configure these in the
+# GitLab project (Settings > CI/CD > Variables):
+#
+#   GITHUB_TOKEN        masked, protected, environment scope "github-releases"
+#                       (so only the release job gets it, not test/build jobs on
+#                       protected branches). Fine-grained token (or GitHub App
+#                       token) with Contents read/write on GITHUB_REPO only.
+#   RELEASE_DENYLIST    optional, plain (not masked: GitLab can't mask regex
+#                       characters), environment scope "*" so branch and merge
+#                       request builds run the check too. Extra patterns for the
+#                       build's public-content check, one extended regex per
+#                       line (or several joined with |). The build prints
+#                       matching lines, never the patterns.
+#
+# Protect the tag pattern v* (Settings > Repository > Protected tags) so only
+# maintainers can create release tags. Optionally make the github-releases
+# environment a protected environment (Settings > CI/CD > Protected
+# environments) to limit who can publish or to require an approval.
+#
+# Pipelines: every branch and merge request runs test + build. A v<semver> tag
+# also runs release, which publishes dist/ to GitHub Releases.
+
+stages:
+  - test
+  - build
+  - release
+
+variables:
+  GITHUB_REPO: warpwire/plugin-sakai
+  PLAYWRIGHT_VERSION: "1.63.0"
+
+.release-tag: &release-tag
+  if: '$CI_COMMIT_TAG =~ /^v\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/'
+
+test:
+  stage: test
+  image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION}-noble
+  script:
+    - cd test
+    - npm install --no-audit --no-fund "playwright@${PLAYWRIGHT_VERSION}"
+    - npm test
+
+build:
+  stage: build
+  image: python:3.12-slim
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends git >/dev/null
+    - git config --global --add safe.directory "$CI_PROJECT_DIR"
+  script:
+    - ./build.sh
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 30 days
+
+release:
+  stage: release
+  image: python:3.12-slim
+  needs: [test, build]
+  environment:
+    name: github-releases
+    deployment_tier: production
+    url: https://github.com/warpwire/plugin-sakai/releases
+  rules:
+    - *release-tag
+  script:
+    - '[ "$CI_COMMIT_REF_PROTECTED" = "true" ] || { echo "release tags must be protected"; exit 1; }'
+    - python3 ci/publish-github-release.py

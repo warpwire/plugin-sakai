@@ -1,6 +1,6 @@
 /**********************************************************************
 //
-// Warpwire Sakai Plugin 3.0.4
+// Warpwire Sakai Plugin (version: see scripts/warpwire.js)
 //
 // Copyright 2020 Warpwire, Inc Licensed under the
 //  Educational Community License, Version 2.0 (the "License"); you may
@@ -17,6 +17,48 @@
 //  
 **********************************************************************/
 var _wwPluginInstance = 1;
+
+// Adds `button` to the editor's active toolbar definition, unless it is already
+// there. It goes directly before Sakai's "ContentItem" button. If there is none
+// (Sakai leaves it out when no content-item tool is available), it goes in its
+// own group after the media group ("Html5video"), so the button can still tell
+// the user the Warpwire tool isn't configured. Toolbars without either (e.g.
+// Sakai's Basic toolbar) get no button, as before. Returns true if the button is
+// on the toolbar afterwards. Only handles array toolbars; with toolbarGroups
+// layouts CKEditor places the button itself.
+function wwAddToolbarButton(config, button) {
+	var toolbar = config.toolbar;
+	if (typeof toolbar === "string") toolbar = config[`toolbar_${toolbar}`];
+	if (!Array.isArray(toolbar)) return false;
+
+	function itemsOf(row) {
+		if (Array.isArray(row)) return row;
+		if (row && Array.isArray(row.items)) return row.items;
+		return null;
+	}
+	function rowIndexWith(name) {
+		for (var i = 0; i < toolbar.length; i++) {
+			var items = itemsOf(toolbar[i]);
+			if (items && items.indexOf(name) !== -1) return i;
+		}
+		return -1;
+	}
+
+	if (rowIndexWith(button) !== -1) return true;
+	var row = rowIndexWith("ContentItem");
+	if (row !== -1) {
+		var items = itemsOf(toolbar[row]);
+		items.splice(items.indexOf("ContentItem"), 0, button);
+		return true;
+	}
+	row = rowIndexWith("Html5video");
+	if (row !== -1) {
+		toolbar.splice(row + 1, 0, [button]);
+		return true;
+	}
+	return false;
+}
+
 CKEDITOR.plugins.add("warpwirecontentitem", {
 	requires: ["iframedialog"],
 	lang: ["en"],
@@ -593,6 +635,16 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 			// Button's icon file path.
 			icon: `${this.path}images/warpwirecontentitem.png`,
 		});
+
+		// Put the button on the toolbar ourselves, so registration never has to
+		// edit Sakai's toolbar definition (design D8). This runs during plugin init,
+		// before the toolbar plugin reads the config to render the toolbar.
+		if (!wwAddToolbarButton(editor.config, "WarpwireContentItem")) {
+			W.log(
+				"no toolbar slot for the Warpwire button in toolbar",
+				editor.config.toolbar,
+			);
+		}
 
 		// Whitelist the markup this plugin inserts so CKEditor's Advanced Content
 		// Filter doesn't strip the embed's span/img/anchor (or their classes and
