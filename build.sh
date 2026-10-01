@@ -4,7 +4,8 @@
 #
 #   warpwire-sakai-<version>.war   the plugin webapp (deploy as webapps/warpwire.war)
 #   warpwire-register              the registration tool
-#   SHA256SUMS                     checksums for both
+#   README.md                      install/upgrade instructions for this version
+#   SHA256SUMS                     checksums for the other three
 #
 # The build is reproducible: the same source at the same commit gives
 # byte-identical artifacts (sorted entries, fixed timestamps and permissions).
@@ -83,6 +84,10 @@ sed "s/^TOOL_VERSION=\"dev\"$/TOOL_VERSION=\"$VERSION\"/" "$ROOT/bin/warpwire-re
 grep -q "^TOOL_VERSION=\"$VERSION\"$" "$DIST/warpwire-register" || { echo "build: failed to stamp the registration tool version" >&2; exit 1; }
 chmod 755 "$DIST/warpwire-register"
 
+# Ship the README so the instructions match the version downloaded.
+cp "$ROOT/README.md" "$DIST/README.md"
+chmod 644 "$DIST/README.md"
+
 # Public-content check: the artifacts are published on the public GitHub
 # repository, so they must not contain internal hostnames or credentials.
 check_public_content() {
@@ -104,7 +109,7 @@ check_public_content() {
 	fi
 	echo ">>> Public-content check passed"
 }
-check_public_content "$STAGE" "$DIST/warpwire-register"
+check_public_content "$STAGE" "$DIST/warpwire-register" "$DIST/README.md"
 
 # Deterministic zip: sorted entries, fixed timestamp, fixed permissions. Entries
 # are stored uncompressed so the bytes don't depend on the zlib version.
@@ -134,7 +139,7 @@ PY
 rm -rf "$DIST/stage"
 (
 	cd "$DIST"
-	python3 - "$WAR" warpwire-register > SHA256SUMS <<'PY'
+	python3 - "$WAR" warpwire-register README.md > SHA256SUMS <<'PY'
 import hashlib, sys
 for name in sys.argv[1:]:
     with open(name, "rb") as fh:

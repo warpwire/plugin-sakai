@@ -40,13 +40,14 @@ Each release's notes list the Sakai versions it was verified against.
 ## What a release contains
 
 Each release on the [GitHub Releases page](https://github.com/warpwire/plugin-sakai/releases)
-has three files:
+has four files:
 
 | File | What it is |
 |---|---|
 | `warpwire-sakai-<version>.war` | The plugin as a standalone static webapp. Deploy it as `webapps/warpwire.war`, so it is served at `/warpwire`. |
 | `warpwire-register` | The registration tool (bash). It adds, checks, and removes the plugin's one-line registration in Sakai's `ckeditor.launch.js`. |
-| `SHA256SUMS` | SHA-256 checksums for both files. |
+| `README.md` | This file: installation and upgrade instructions for this version. |
+| `SHA256SUMS` | SHA-256 checksums for the other three files. |
 
 The WAR contains:
 
@@ -75,7 +76,7 @@ your Tomcat base directory (the one containing `webapps/`).
 
 ### 1. Download and verify the release
 
-Download the three files for the release from the
+Download the four files for the release from the
 [Releases page](https://github.com/warpwire/plugin-sakai/releases) into one
 directory, then check them:
 
@@ -85,7 +86,7 @@ shasum -a 256 -c SHA256SUMS      # macOS
 chmod +x warpwire-register
 ```
 
-Both lines must say `OK`.
+All three lines must say `OK`.
 
 If you are upgrading from the legacy (3.0.x) plugin, first follow
 [Upgrading from the legacy Warpwire plugin](#upgrading-from-the-legacy-warpwire-plugin).
@@ -289,7 +290,7 @@ continue to render; public legacy embeds play directly.
 The release artifacts are built from this repository by `build.sh`:
 
 ```sh
-./build.sh                  # writes dist/warpwire-sakai-<version>.war, dist/warpwire-register, dist/SHA256SUMS
+./build.sh                  # writes dist/warpwire-sakai-<version>.war, dist/warpwire-register, dist/README.md, dist/SHA256SUMS
 ```
 
 It needs `bash`, `python3` and `git`. The build is reproducible: building a
