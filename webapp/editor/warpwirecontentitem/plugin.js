@@ -211,10 +211,11 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 								candidates.push(links[i]);
 							}
 						}
+						// Default mirrors warpwire.js, in case it failed to load and
+						// wwCfg is the {} shim.
+						const toolTitle = String(wwCfg.toolTitle || "warpwire");
 						const needles = [
-							String(wwCfg.toolTitle || "")
-								.trim()
-								.toLowerCase(),
+							toolTitle.trim().toLowerCase(),
 							(wwCfg.instanceDomain || "")
 								.replace(/^https?:\/\//, "")
 								.replace(/\/.*$/, "")
@@ -234,7 +235,7 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 							);
 						} else if (!warpwireLink && candidates.length > 0) {
 							W.warn(
-								`content-item tools found but none match toolTitle "${wwCfg.toolTitle}"; set WARPWIRE_DEPLOY.toolTitle if the Warpwire tool was renamed`,
+								`content-item tools found but none match toolTitle "${toolTitle}"; set WARPWIRE_DEPLOY.toolTitle if the Warpwire tool was renamed`,
 							);
 						}
 						if (warpwireLink) {
