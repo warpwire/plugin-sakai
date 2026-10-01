@@ -45,6 +45,10 @@
 		instanceDomain: "",
 		// Student-contribution destination base; falls back to instanceDomain.
 		contributionUri: "",
+		// Text that identifies the Warpwire LTI tool in Sakai's content-item
+		// picker (matched case-insensitively against the tool's title and
+		// description). Override when the tool is renamed or localized.
+		toolTitle: "warpwire",
 		// Documented cookie policy required for cross-site iframe playback.
 		cookieSameSite: "none",
 		// Diagnostic switch. Also forced on by a ?wwdebug=1 query parameter.

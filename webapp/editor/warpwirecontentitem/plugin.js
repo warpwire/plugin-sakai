@@ -195,13 +195,12 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 						const iframeBody =
 							ContentItemIFrameWindow.document.getElementsByTagName("body")[0];
 
-						// Locate the Warpwire tool by the STRUCTURE of its content-item picker
-						// link (the ContentItemMain launch carrying a tool_id), not by matching
-						// the human-visible label text. When Warpwire is the only content-item
-						// tool (the common case) this is independent of the tool's display
-						// label, so localization/renaming/whitespace can't break it (D4). With
-						// multiple content-item tools, prefer the one whose launch resolves to
-						// the configured Warpwire instance host.
+						// Collect the picker's content-item launch links (ContentItemMain
+						// carrying a tool_id), then keep only those that identify as
+						// Warpwire. The picker exposes nothing but the tool's title and
+						// description, so match those against the configured toolTitle or
+						// the instance host. Never launch an unidentified tool: a site with
+						// only another vendor's content-item tool must get no_warpwire_tool.
 						const candidates = [];
 						for (let i = 0; i < links.length; i++) {
 							const href = links[i].getAttribute("href") || "";
@@ -212,34 +211,31 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 								candidates.push(links[i]);
 							}
 						}
-						let warpwireLink = null;
-						if (candidates.length === 1) {
-							warpwireLink = candidates[0];
-						} else if (candidates.length > 1) {
-							const host = (wwCfg.instanceDomain || "")
+						const needles = [
+							String(wwCfg.toolTitle || "")
+								.trim()
+								.toLowerCase(),
+							(wwCfg.instanceDomain || "")
 								.replace(/^https?:\/\//, "")
 								.replace(/\/.*$/, "")
-								.toLowerCase();
-							if (host) {
-								warpwireLink = candidates.find(
-									(a) =>
-										`${a.getAttribute("href") || ""} ${a.textContent || ""}`
-											.toLowerCase()
-											.indexOf(host) !== -1,
-								);
-							}
-							if (!warpwireLink) {
-								warpwireLink =
-									candidates.find(
-										(a) =>
-											(a.textContent || "")
-												.toLowerCase()
-												.indexOf("warpwire") !== -1,
-									) || candidates[0];
-								W.warn(
-									"multiple content-item tools found; disambiguation fell back to label/first",
-								);
-							}
+								.toLowerCase(),
+						].filter(Boolean);
+						const matches = candidates.filter((a) => {
+							// the <li> holds both the title (link text) and description
+							const text = (
+								(a.closest?.("li") || a).textContent || ""
+							).toLowerCase();
+							return needles.some((n) => text.indexOf(n) !== -1);
+						});
+						const warpwireLink = matches[0] || null;
+						if (matches.length > 1) {
+							W.warn(
+								"multiple content-item tools match Warpwire; launching the first",
+							);
+						} else if (!warpwireLink && candidates.length > 0) {
+							W.warn(
+								`content-item tools found but none match toolTitle "${wwCfg.toolTitle}"; set WARPWIRE_DEPLOY.toolTitle if the Warpwire tool was renamed`,
+							);
 						}
 						if (warpwireLink) {
 							warpwireLink.click();
@@ -257,13 +253,29 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 							W.log("launched Warpwire content-item tool");
 							return false;
 						}
-						// Detect if the user is not a site maintainer
-						// Try first using the globally available Sakai Javascript vars
-						if (
-							window.portal?.user?.siteRole &&
-							window.portal.user.siteRole !== "maintain"
-						) {
+						// Detect if the user is not a site maintainer from Sakai's
+						// portal.user.siteRole. The editor may run in a frame or popup
+						// that lacks window.portal, so also consult the windows that
+						// host it (same-origin only; cross-origin access throws).
+						const siteRole = [
+							() => window,
+							() => window.parent,
+							() => window.top,
+							() => window.opener,
+						].reduce((role, getWin) => {
+							if (role) return role;
+							try {
+								return getWin()?.portal?.user?.siteRole || "";
+							} catch (_e) {
+								return "";
+							}
+						}, "");
+						if (siteRole && siteRole !== "maintain") {
 							siteMaintainer = false;
+						} else if (!siteRole) {
+							W.warn(
+								"portal.user.siteRole unavailable; treating user as a site maintainer",
+							);
 						}
 						// the user is not a site maintainer
 						if (!warpwireToolFound && !siteMaintainer) {

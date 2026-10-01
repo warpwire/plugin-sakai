@@ -135,5 +135,49 @@ assert(
 );
 assert(r.sentinel === "page still intact", "surrounding page not broken");
 
+// A second scan of the same document (extrahead's copy inside a same-origin
+// frame, then the parent's scanFrames) must not render anything twice.
+const before = await page.evaluate(() => {
+  window.__wwFirst = [...document.querySelectorAll("span._ww_iframe_embed iframe")];
+  return [...document.querySelectorAll("span._ww_iframe_embed")].map(
+    (s) => s.querySelectorAll("iframe").length,
+  );
+});
+await page.addScriptTag({ content: portal });
+await page.waitForTimeout(300);
+const after = await page.evaluate(() => ({
+  iframes: [...document.querySelectorAll("span._ww_iframe_embed")].map(
+    (s) => s.querySelectorAll("iframe").length,
+  ),
+  placeholders: [...document.querySelectorAll("span._ww_iframe_embed")].map(
+    (s) => (s.innerText.match(/unavailable/gi) || []).length,
+  ),
+  sameEls: [...document.querySelectorAll("span._ww_iframe_embed iframe")].every(
+    (f, i) => f === window.__wwFirst[i],
+  ),
+}));
+assert(
+  JSON.stringify(after.iframes) === JSON.stringify(before),
+  `re-scan adds no iframes (${before} -> ${after.iframes})`,
+);
+assert(after.sameEls, "re-scan does not replace (relaunch) rendered iframes");
+assert(
+  after.placeholders.every((n) => n <= 1),
+  "re-scan does not duplicate the malformed-embed placeholder",
+);
+
+// With no jQuery on the page the portal script must load without throwing.
+const bare = await ctx.newPage();
+const bareErrs = [];
+bare.on("pageerror", (e) => bareErrs.push(String(e)));
+await bare.setContent("<!doctype html><html><body></body></html>");
+await bare.addScriptTag({ content: runtime });
+await bare.addScriptTag({ content: portal });
+await bare.waitForTimeout(100);
+assert(
+  bareErrs.length === 0,
+  `no-jQuery shim loads without errors (${bareErrs.join("; ")})`,
+);
+
 await b.close();
 console.log(process.exitCode ? "renderer.test: FAIL" : "renderer.test: PASS");

@@ -135,6 +135,7 @@ portal.include.extrahead=<script>window.WARPWIRE_DEPLOY={instanceDomain:"https:/
 |---|---|
 | `instanceDomain` | Your Warpwire instance URL, no trailing slash. |
 | `contributionUri` | Base URL for student contributions. Defaults to `instanceDomain`. |
+| `toolTitle` | Text that identifies the Warpwire tool in Sakai's content-item picker, matched against the tool's title and description. Defaults to `warpwire`. Set it only if you renamed or localized the tool. |
 | `debug` | `true` logs `[warpwire]` diagnostics to the browser console. You can also add `?wwdebug=1` to any page URL. |
 
 Everything in this block is sent to browsers, so never put the LTI key or

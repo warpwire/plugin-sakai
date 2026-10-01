@@ -94,9 +94,17 @@
 	// $("<iframe>", {...}) attribute map, which would invoke the .width()/.height()
 	// *methods* and set CSS dimensions instead of the HTML attributes). The src is
 	// used as-is (callers pre-normalize protocol as appropriate).
+	// Every iframe gets a unique id: Sakai 25's portal prelaunch handler
+	// (library/js/sakai-lti-advantage.js) only answers org.sakailms.lti.prelaunch
+	// from a frame it can identify by id. Without one it ignores the request and
+	// the /access/lti launch page falls back to its 2-second timeout
+	// ("Submitting after prelaunch timeout"), delaying every embed.
+	let iframeSeq = 0;
 	const buildIframe = (src, width, height, title) => {
 		const $iframe = $("<iframe>");
+		iframeSeq += 1;
 		$iframe.attr({
+			id: `ww-embed-${Date.now().toString(36)}-${iframeSeq}`,
 			src: String(src),
 			width,
 			height,
@@ -135,27 +143,29 @@
 					"(3) the viewer is not entitled to this media in Warpwire.",
 			);
 		}
-		let settled = false;
+		// The frame's first load is normally Sakai's same-origin /access/lti
+		// launch page, which then auto-submits (or does the Sakai 25 prelaunch
+		// round trip) to Warpwire. So judge only after the grace period: by then
+		// a working launch has navigated cross-origin, and a frame still readable
+		// as same-origin never left Sakai.
+		let loaded = false;
 		el.addEventListener("load", () => {
-			settled = true;
-			let stuckSameOrigin = false;
-			try {
-				// If we can still read the frame's href after load, it never left
-				// the Sakai origin -> the launch failed to start.
-				void el.contentWindow.location.href;
-				stuckSameOrigin = true;
-			} catch (_e) {
-				// cross-origin: the launch navigated to Warpwire (expected path).
-			}
-			if (stuckSameOrigin) {
+			loaded = true;
+		});
+		setTimeout(() => {
+			if (loaded) {
+				try {
+					// Readable href -> still on the Sakai origin -> never started.
+					void el.contentWindow.location.href;
+				} catch (_e) {
+					return; // cross-origin: navigated to Warpwire (expected path)
+				}
 				W.warn(
 					`Warpwire playback launch did not start for ${src}. Verify the tool is a valid LTI 1.1 content-item tool and that /access/lti is reachable.`,
 				);
+				return;
 			}
-		});
-		// Watchdog: if the frame never even fires load, say so with the causes.
-		setTimeout(() => {
-			if (settled) return;
+			// The frame never even fired load: say so with the causes.
 			W.warn(
 				`Warpwire playback launch has not completed for ${src}. If the media shows a lock/error, the cause is usually one of: ` +
 					`(1) LTI 1.1 key/secret mismatch ("OAuth validation has failed"); ` +
@@ -305,10 +315,18 @@
 			.each((_i, span) => {
 				const $span = $(span);
 				try {
+					// Render each span once. The same document can be scanned twice:
+					// extrahead also loads this script inside same-origin tool/resource
+					// frames, and the parent's scanFrames then scans those frames too.
+					// The marker lives on the shared DOM, so both copies see it.
+					if ($span.attr("data-ww-rendered")) {
+						return;
+					}
 					// Link-style content-item launches are already anchors; leave them.
 					if ($span.children("a.lti-content-item-launch").length) {
 						return;
 					}
+					$span.attr("data-ww-rendered", "1");
 					// Decide by the rel SHAPE (launch URL vs. legacy JSON), not by the
 					// <img> child, so a content-item span whose img/class was stripped
 					// still renders as a launch instead of degrading to a placeholder.
@@ -398,8 +416,8 @@
 			first: noop,
 			append: noop,
 			replaceWith: noop,
-			length: 0,
 		});
+		// (no length: 0 - a function's length is already 0 and is read-only)
 		return stub;
 	})(),
 );

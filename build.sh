@@ -89,7 +89,14 @@ check_public_content() {
 	local patterns hits
 	patterns="$(sed -e '/^[[:space:]]*#/d' -e '/^[[:space:]]*$/d' "$ROOT/release-denylist.txt")"
 	if [ -n "${RELEASE_DENYLIST:-}" ]; then patterns="$patterns"$'\n'"$RELEASE_DENYLIST"; fi
-	hits="$(printf '%s\n' "$patterns" | sed '/^[[:space:]]*$/d' | grep -r -n -I -i -E -f /dev/stdin "$@" || true)"
+	# grep exits 0 on hits, 1 on none, 2 on an error (e.g. a malformed pattern);
+	# an error must fail the build, not read as "no hits".
+	local rc=0
+	hits="$(printf '%s\n' "$patterns" | sed '/^[[:space:]]*$/d' | grep -r -n -I -i -E -f /dev/stdin "$@")" || rc=$?
+	if [ "$rc" -gt 1 ]; then
+		echo "build: public-content check could not run (grep exit $rc); check release-denylist.txt and RELEASE_DENYLIST" >&2
+		exit 1
+	fi
 	if [ -n "$hits" ]; then
 		echo "build: public-content check FAILED; these lines must not be published:" >&2
 		printf '%s\n' "$hits" | cut -c1-200 >&2
