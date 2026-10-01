@@ -50,6 +50,10 @@ legacy Warpwire plugin" in the README.
 
 ### Fixed
 
+- Instructors in course sites are recognized as site maintainers. Previously
+  only the `maintain` role was, so an instructor could get the student
+  contribution flow. The plugin now accepts the configurable `maintainerRoles`
+  (default `maintain`, `Instructor`).
 - URLs that already contain a query string, and parameter values containing
   `=`, are no longer corrupted.
 - Removed dead code and leaking event listeners; failures on the main paths

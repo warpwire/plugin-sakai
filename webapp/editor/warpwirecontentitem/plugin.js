@@ -270,7 +270,19 @@ CKEDITOR.plugins.add("warpwirecontentitem", {
 								return "";
 							}
 						}, "");
-						if (siteRole && siteRole !== "maintain") {
+						// maintainerRoles is a list or a comma-separated string of
+						// role ids, compared case-insensitively. Falls back to Sakai's
+						// "maintain" role if warpwire.js (and its defaults) didn't load.
+						const roles = wwCfg.maintainerRoles || ["maintain"];
+						const maintainerRoles = (
+							Array.isArray(roles) ? roles : String(roles).split(",")
+						)
+							.map((r) => String(r).trim().toLowerCase())
+							.filter(Boolean);
+						if (
+							siteRole &&
+							maintainerRoles.indexOf(siteRole.toLowerCase()) === -1
+						) {
 							siteMaintainer = false;
 						} else if (!siteRole) {
 							W.warn(

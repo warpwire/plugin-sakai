@@ -49,6 +49,11 @@
 		// picker (matched case-insensitively against the tool's title and
 		// description). Override when the tool is renamed or localized.
 		toolTitle: "warpwire",
+		// Site roles (Sakai role ids, case-insensitive) that may add Warpwire
+		// media from the editor.
+		// Everyone else gets the student-contribution flow. Defaults to the
+		// maintain roles of Sakai's stock project and course site templates.
+		maintainerRoles: ["maintain", "Instructor"],
 		// Documented cookie policy required for cross-site iframe playback.
 		cookieSameSite: "none",
 		// Diagnostic switch. Also forced on by a ?wwdebug=1 query parameter.
