@@ -151,8 +151,15 @@ Also apply the cookie settings in [Cookies & HTTPS](#cookies--https-required-for
 
 ### 5. Register the Warpwire LTI 1.1 tool
 
-In **Administration Workspace → External Tools → Install LTI 1.1 Tool**, create a
-globally-available tool:
+**If you are upgrading from 3.0.x, keep your existing Warpwire LTI 1.1 tool.**
+Don't delete it or create a second one: existing embeds are tied to that tool's
+internal id and stop working if it is deleted. Instead, open it in
+**Administration Workspace → External Tools → Edit** and check that it matches
+the table below, in particular **Enabled**, **Visible** (not stealthed),
+**use from the rich content editor**, and LTI 1.3 off.
+
+On a fresh install, in **Administration Workspace → External Tools → Install LTI
+1.1 Tool**, create a globally-available tool:
 
 | Setting | Value |
 |---|---|
@@ -219,9 +226,10 @@ uninstall this one and follow that version's own instructions.
 2. Delete `webapps/warpwire.war` (Tomcat removes the expanded `webapps/warpwire/`).
 3. Remove the Warpwire part of `portal.include.extrahead` from `sakai.properties`
    and restart Sakai.
-4. Optionally, remove or disable the Warpwire LTI tool (step 5). Existing
-   Warpwire embeds in content stop rendering as players once the plugin is
-   removed.
+4. Optionally, disable the Warpwire LTI tool (step 5). Disable it rather than
+   delete it if you might reinstall: deleting it permanently breaks existing
+   embeds, because they are tied to the tool's internal id. Existing Warpwire
+   embeds in content stop rendering as players once the plugin is removed.
 
 ## Cookies & HTTPS (required for restricted playback)
 
@@ -260,8 +268,10 @@ watch the browser console for `[warpwire]` messages. Common cases:
 
 ## Upgrading from the legacy Warpwire plugin
 
-Remove the old tool from course Tools menus first. Then remove the legacy
-assets before deploying this version:
+Remove the old tool from course Tools menus first. This means the pre-3.0
+`sakai.warpwire` tool placement (configured in `IMSBLTIPortlet.xml`), not the
+Warpwire LTI 1.1 External Tool: keep that one (see step 5). Then remove the
+legacy assets before deploying this version:
 
 - `webapps/library/editor/ckextraplugins/warpwire` and
   `webapps/library/editor/ckextraplugins/warpwirecontentitem`;
