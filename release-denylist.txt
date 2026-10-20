@@ -1,0 +1,12 @@
+# Patterns that must never appear in a published release artifact (build.sh
+# fails if one matches). One case-insensitive extended regex per line; lines
+# starting with # are ignored. CI can add more via the RELEASE_DENYLIST variable.
+#
+# Internal hostnames
+gocadmium\.(dev|net|io|internal)
+\.internal(/|:|"|'|$)
+# Credentials
+-----BEGIN [A-Z ]*PRIVATE KEY-----
+(glpat|ghp|gho|ghs|github_pat)_[A-Za-z0-9_]{16,}
+AKIA[0-9A-Z]{16}
+(secret|password|passwd)["']?[[:space:]]*[:=][[:space:]]*["'][^"'[:space:]]{6,}

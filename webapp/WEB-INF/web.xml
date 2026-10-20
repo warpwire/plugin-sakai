@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Warpwire Sakai plugin - static webapp.
+
+  Serves the CKEditor plugin (/warpwire/editor/warpwirecontentitem/) and the
+  portal scripts (/warpwire/scripts/). Deploy as webapps/warpwire.war so the
+  context path is /warpwire. No servlets; Tomcat's default servlet serves the
+  files. Servlet 3.1 so it deploys on the Tomcat 8.5/9 used by Sakai 12-25.
+  See README.md.
+-->
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+  <display-name>Warpwire Sakai Plugin</display-name>
+</web-app>

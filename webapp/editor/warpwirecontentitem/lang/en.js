@@ -1,0 +1,13 @@
+CKEDITOR.addPluginLang = (plugin, lang, obj) => {
+	// v3 using feature detection
+	if (CKEDITOR.skins) {
+		const newObj = {};
+		newObj[plugin] = obj;
+		obj = newObj;
+	}
+	CKEDITOR.plugins.setLang(plugin, lang, obj);
+};
+
+CKEDITOR.addPluginLang("warpwirecontentitem", "en", {
+	tooltip: "Insert Content Item",
+});
