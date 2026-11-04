@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Browser-based unit tests for the Warpwire Sakai plugin's portal renderer and return-handshake page.",
+  "description": "Unit tests for the Warpwire Sakai plugin: portal renderer, return-handshake page, toolbar placement, and the README's ckeditor.launch.js edits.",
   "scripts": {
-    "test": "node renderer.test.mjs && node warpwire-html.test.mjs && node toolbar.test.mjs && bash register.test.sh",
+    "test": "node renderer.test.mjs && node warpwire-html.test.mjs && node toolbar.test.mjs && node registration.test.mjs",
     "test:toolbar": "node toolbar.test.mjs",
-    "test:register": "bash register.test.sh",
+    "test:registration": "node registration.test.mjs",
     "test:renderer": "node renderer.test.mjs",
     "test:html": "node warpwire-html.test.mjs"
   },

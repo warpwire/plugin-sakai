@@ -1,5 +1,5 @@
 // Unit test for the return-handshake page
-// (webapp/editor/warpwirecontentitem/html/warpwire.html).
+// (plugin/webapps/library/editor/ckextraplugins/warpwirecontentitem/html/warpwire.html).
 //
 // Serves the shipped warpwire.html from a throwaway localhost server (so the
 // page has a real http origin, which its postMessage handshake targets) and
@@ -18,8 +18,11 @@ const HTML = readFileSync(
   join(
     HERE,
     "..",
-    "webapp",
+    "plugin",
+    "webapps",
+    "library",
     "editor",
+    "ckextraplugins",
     "warpwirecontentitem",
     "html",
     "warpwire.html",

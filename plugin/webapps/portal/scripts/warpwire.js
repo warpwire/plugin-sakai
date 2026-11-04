@@ -28,9 +28,9 @@
 // of hand-duplicating them across files (see design D5).
 //
 // Per-deployment values (Warpwire instance domain, student-contribution
-// destination, cookie policy, debug flag) are injected by the packaged deploy
-// as window.WARPWIRE_DEPLOY and merged over the defaults below; they are NOT
-// hand-edited into source. In this dev env, scripts/gen-config.sh generates the
+// destination, cookie policy, debug flag) are set in sakai.properties as an
+// inline window.WARPWIRE_DEPLOY block (portal.include.extrahead) and merged
+// over the defaults below; they are NOT hand-edited into source. In this dev env, scripts/gen-config.sh generates the
 // WARPWIRE_DEPLOY shim from .env.
 **********************************************************************/
 (function (w) {

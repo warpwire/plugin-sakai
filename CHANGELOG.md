@@ -14,26 +14,37 @@ tag for you to push. `./publish.sh minor --alpha` tags an alpha
 
 Verified against: Sakai 25.2.
 
-### Breaking: new install
+### Install changes
 
-The plugin now ships as a standalone webapp plus a registration tool, instead of
-files copied into Sakai's `library` and `portal` webapps with manual edits to
-`ckeditor.launch.js`. Remove the legacy install first; see "Upgrading from the
-legacy Warpwire plugin" in the README.
+The plugin installs as before: copy the `plugin/` files into Sakai (same
+locations as 3.0.x) and edit `ckeditor.launch.js`, now from a clone of the
+repository at the release tag or from the release zip. What changes:
+
+- `portal.include.extrahead` now carries the configuration
+  (`window.WARPWIRE_DEPLOY`) and loads `/portal/scripts/warpwire.js` before
+  `warpwirecontentitem.js`. `studentContributionUri` is no longer edited into
+  `plugin.js`. See "Upgrading from 3.0.x" in the README.
+- No toolbar edit is needed (see below). An existing toolbar entry still works.
+
+If you tested `v3.1.0-alpha.1`, which shipped as a standalone `warpwire.war`
+with a `warpwire-register` tool: that approach is withdrawn. Remove the WAR
+and its line in `ckeditor.launch.js`; see the README.
 
 ### Added
 
 - Sakai 25 support (tested on 25.2), including Sakai 25's portal markup and
   its round-trip LTI 1.1 prelaunch redirect.
-- Release artifacts: `warpwire-sakai-<version>.war` (deploy as
-  `webapps/warpwire.war`), the `warpwire-register` tool, and `SHA256SUMS`.
-  Builds are reproducible from the release tag (`./build.sh`).
-- `warpwire-register install | uninstall | status`: adds the plugin's one-line
-  registration to `ckeditor.launch.js`. It is idempotent, changes nothing if
-  the file isn't in the expected shape, and uninstall restores the file
-  exactly. `status` checks the whole installation.
+- Exact `ckeditor.launch.js` edits for Sakai 22 – 25 and Sakai 12 – 21, and
+  instructions for schools that build Sakai from source. Tests check the
+  documented edits against Sakai 12.7, 22.4 and 25.2's own files.
+- Release files on GitHub Releases: `warpwire-sakai-<version>.zip` (the
+  `plugin/` files, README and license) and `SHA256SUMS`. Builds are
+  reproducible from the release tag (`./build.sh`).
+- A verification checklist in the README.
 - The editor plugin adds its own toolbar button, so Sakai's toolbar definition
-  is no longer edited.
+  is no longer edited. It only adds its own button, never moves or removes
+  other buttons, leaves a toolbar shared with other editors unchanged, and can
+  be hidden with CKEditor's `removeButtons`.
 - Per-deployment configuration (`window.WARPWIRE_DEPLOY`) in
   `sakai.properties`, set once and kept across upgrades. Debug diagnostics via
   `debug: true` or `?wwdebug=1`.

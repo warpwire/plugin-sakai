@@ -1,4 +1,4 @@
-// Unit test for the portal renderer (webapp/scripts/*.js).
+// Unit test for the portal renderer (plugin/webapps/portal/scripts/*.js).
 //
 // Loads the shipped warpwire.js + warpwirecontentitem.js into a headless page
 // over a synthetic DOM and asserts each embed kind renders correctly. No running
@@ -11,7 +11,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const SCRIPTS = join(HERE, "..", "webapp", "scripts");
+const SCRIPTS = join(HERE, "..", "plugin", "webapps", "portal", "scripts");
 const runtime = readFileSync(join(SCRIPTS, "warpwire.js"), "utf8");
 const portal = readFileSync(join(SCRIPTS, "warpwirecontentitem.js"), "utf8");
 

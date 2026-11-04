@@ -1,24 +1,27 @@
 #!/usr/bin/env bash
 #
-# Builds the Warpwire Sakai plugin release artifacts into dist/:
+# Builds the Warpwire Sakai plugin release files into dist/:
 #
-#   warpwire-sakai-<version>.war   the plugin webapp (deploy as webapps/warpwire.war)
-#   warpwire-register              the registration tool
-#   README.md                      install/upgrade instructions for this version
-#   SHA256SUMS                     checksums for the other three
+#   warpwire-sakai-<version>.zip   warpwire-sakai-<version>/ holding the drop-in
+#                                  plugin/ tree, README.md and LICENSE
+#   SHA256SUMS                     checksum for the zip
+#
+# The zip is a convenience: its plugin/ tree is the repository's plugin/ tree
+# (admins can also install from a clone). The only difference is for an alpha
+# or other pre-release build, which stamps that version into warpwire.js.
 #
 # The build is reproducible: the same source at the same commit gives
 # byte-identical artifacts (sorted entries, fixed timestamps and permissions).
 #
 # Usage:
-#   ./build.sh                  version from webapp/scripts/warpwire.js
+#   ./build.sh                  version from plugin/webapps/portal/scripts/warpwire.js
 #   ./build.sh --version 3.1.0  build a specific version
 #   CI_COMMIT_TAG=v3.1.0 ./build.sh   (CI) version from the tag
 #
 # Requires bash, python3 and git (git only for the timestamp; set
 # SOURCE_DATE_EPOCH to build without git).
 #
-# Before packaging, the build fails if the webapp contains internal hostnames
+# Before packaging, the build fails if the plugin files contain internal hostnames
 # or credentials (patterns in release-denylist.txt). Extra patterns can be
 # supplied in RELEASE_DENYLIST (one extended regex per line), e.g. from a CI
 # variable.
@@ -27,9 +30,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 ROOT="$(pwd)"
-SRC="$ROOT/webapp"
+SRC="$ROOT/plugin"
 DIST="$ROOT/dist"
-RUNTIME="scripts/warpwire.js"
+RUNTIME="webapps/portal/scripts/warpwire.js"
 VERSION_RE='^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'
 
 VERSION=""
@@ -52,7 +55,7 @@ if [ -z "$VERSION" ] && [ -n "${CI_COMMIT_TAG:-}" ]; then VERSION="${CI_COMMIT_T
 # and the published artifact agree (publish.sh sets both). Pre-release tags
 # (v3.1.0-rc.1) are exempt: they're cut before the version is bumped.
 if [ -n "${CI_COMMIT_TAG:-}" ] && [[ "$VERSION" != *-* ]] && [ "$VERSION" != "$(source_version)" ]; then
-	echo "build: tag $CI_COMMIT_TAG doesn't match NS.version \"$(source_version)\" in $RUNTIME (use ./publish.sh to release)" >&2
+	echo "build: tag $CI_COMMIT_TAG doesn't match NS.version \"$(source_version)\" in plugin/$RUNTIME (use ./publish.sh to release)" >&2
 	exit 1
 fi
 
@@ -62,33 +65,28 @@ if [ -z "${SOURCE_DATE_EPOCH:-}" ]; then
 fi
 export SOURCE_DATE_EPOCH
 
-WAR="warpwire-sakai-$VERSION.war"
-echo ">>> Building $WAR (source date $SOURCE_DATE_EPOCH)"
+NAME="warpwire-sakai-$VERSION"
+ZIP="$NAME.zip"
+echo ">>> Building $ZIP (source date $SOURCE_DATE_EPOCH)"
 
-# Empty dist/ rather than deleting it, so a bind mount of dist/ (e.g. a dev
-# container) keeps working across builds.
+# Empty dist/ rather than deleting it, so a bind mount of dist/ keeps working
+# across builds.
 mkdir -p "$DIST"
 find "$DIST" -mindepth 1 -delete
-mkdir -p "$DIST/stage"
-STAGE="$DIST/stage/webapp"
-cp -R "$SRC" "$STAGE"
+STAGE="$DIST/stage/$NAME"
+mkdir -p "$STAGE"
+cp -R "$SRC" "$STAGE/plugin"
+cp "$ROOT/README.md" "$ROOT/LICENSE" "$STAGE/"
 
-# Stamp the version into the one place it is defined (the shared runtime).
-count="$(grep -c -E '^[[:space:]]*NS\.version = "[^"]+";' "$STAGE/$RUNTIME" || true)"
-[ "$count" = "1" ] || { echo "build: expected exactly one NS.version line in $RUNTIME, found $count" >&2; exit 1; }
-sed -E "s/^([[:space:]]*NS\.version = )\"[^\"]+\";/\1\"$VERSION\";/" "$STAGE/$RUNTIME" > "$STAGE/$RUNTIME.tmp"
-mv "$STAGE/$RUNTIME.tmp" "$STAGE/$RUNTIME"
-[ "$(sed -n -E 's/^[[:space:]]*NS\.version = "([^"]+)";.*/\1/p' "$STAGE/$RUNTIME")" = "$VERSION" ] || { echo "build: version stamp failed" >&2; exit 1; }
+# Stamp the version into the one place it is defined (the shared runtime). For a
+# final release this is a no-op: publish.sh already set it in the source.
+count="$(grep -c -E '^[[:space:]]*NS\.version = "[^"]+";' "$STAGE/plugin/$RUNTIME" || true)"
+[ "$count" = "1" ] || { echo "build: expected exactly one NS.version line in plugin/$RUNTIME, found $count" >&2; exit 1; }
+sed -E "s/^([[:space:]]*NS\.version = )\"[^\"]+\";/\1\"$VERSION\";/" "$STAGE/plugin/$RUNTIME" > "$STAGE/plugin/$RUNTIME.tmp"
+mv "$STAGE/plugin/$RUNTIME.tmp" "$STAGE/plugin/$RUNTIME"
+[ "$(sed -n -E 's/^[[:space:]]*NS\.version = "([^"]+)";.*/\1/p' "$STAGE/plugin/$RUNTIME")" = "$VERSION" ] || { echo "build: version stamp failed" >&2; exit 1; }
 
-sed "s/^TOOL_VERSION=\"dev\"$/TOOL_VERSION=\"$VERSION\"/" "$ROOT/bin/warpwire-register" > "$DIST/warpwire-register"
-grep -q "^TOOL_VERSION=\"$VERSION\"$" "$DIST/warpwire-register" || { echo "build: failed to stamp the registration tool version" >&2; exit 1; }
-chmod 755 "$DIST/warpwire-register"
-
-# Ship the README so the instructions match the version downloaded.
-cp "$ROOT/README.md" "$DIST/README.md"
-chmod 644 "$DIST/README.md"
-
-# Public-content check: the artifacts are published on the public GitHub
+# Public-content check: the release files are published on the public GitHub
 # repository, so they must not contain internal hostnames or credentials.
 check_public_content() {
 	local patterns hits
@@ -109,11 +107,11 @@ check_public_content() {
 	fi
 	echo ">>> Public-content check passed"
 }
-check_public_content "$STAGE" "$DIST/warpwire-register" "$DIST/README.md"
+check_public_content "$STAGE"
 
 # Deterministic zip: sorted entries, fixed timestamp, fixed permissions. Entries
 # are stored uncompressed so the bytes don't depend on the zlib version.
-python3 - "$STAGE" "$DIST/$WAR" <<'PY'
+python3 - "$DIST/stage" "$DIST/$ZIP" <<'PY'
 import os, sys, time, zipfile
 src, out = sys.argv[1], sys.argv[2]
 epoch = max(int(os.environ["SOURCE_DATE_EPOCH"]), 315532800)  # zip can't go before 1980
@@ -139,7 +137,7 @@ PY
 rm -rf "$DIST/stage"
 (
 	cd "$DIST"
-	python3 - "$WAR" warpwire-register README.md > SHA256SUMS <<'PY'
+	python3 - "$ZIP" > SHA256SUMS <<'PY'
 import hashlib, sys
 for name in sys.argv[1:]:
     with open(name, "rb") as fh:
