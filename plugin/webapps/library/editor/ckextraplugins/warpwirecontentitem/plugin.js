@@ -1,6 +1,6 @@
 /**********************************************************************
 //
-// Warpwire Sakai Plugin (version: see scripts/warpwire.js)
+// Warpwire Sakai Plugin (version: see portal/scripts/warpwire.js)
 //
 // Copyright 2020 Warpwire, Inc Licensed under the
 //  Educational Community License, Version 2.0 (the "License"); you may
@@ -26,9 +26,14 @@ var _wwPluginInstance = 1;
 // Sakai's Basic toolbar) get no button, as before. Returns true if the button is
 // on the toolbar afterwards. Only handles array toolbars; with toolbarGroups
 // layouts CKEditor places the button itself.
+//
+// Other plugins' items are never removed or moved. The toolbar definition can be
+// shared with other editors or configs, so it isn't modified: the change is made
+// to a copy that is set on this editor's own config.
 function wwAddToolbarButton(config, button) {
-	var toolbar = config.toolbar;
-	if (typeof toolbar === "string") toolbar = config[`toolbar_${toolbar}`];
+	var key = "toolbar";
+	if (typeof config.toolbar === "string") key = `toolbar_${config.toolbar}`;
+	var toolbar = config[key];
 	if (!Array.isArray(toolbar)) return false;
 
 	function itemsOf(row) {
@@ -36,24 +41,36 @@ function wwAddToolbarButton(config, button) {
 		if (row && Array.isArray(row.items)) return row.items;
 		return null;
 	}
-	function rowIndexWith(name) {
-		for (var i = 0; i < toolbar.length; i++) {
-			var items = itemsOf(toolbar[i]);
+	function rowIndexWith(rows, name) {
+		for (var i = 0; i < rows.length; i++) {
+			var items = itemsOf(rows[i]);
 			if (items && items.indexOf(name) !== -1) return i;
 		}
 		return -1;
 	}
+	// Copies the rows and their item lists; row objects keep their other fields.
+	function copyOf(rows) {
+		return rows.map((row) => {
+			if (Array.isArray(row)) return row.slice();
+			if (row && Array.isArray(row.items)) return Object.assign({}, row, { items: row.items.slice() });
+			return row;
+		});
+	}
 
-	if (rowIndexWith(button) !== -1) return true;
-	var row = rowIndexWith("ContentItem");
+	if (rowIndexWith(toolbar, button) !== -1) return true;
+	var row = rowIndexWith(toolbar, "ContentItem");
 	if (row !== -1) {
-		var items = itemsOf(toolbar[row]);
+		var copy = copyOf(toolbar);
+		var items = itemsOf(copy[row]);
 		items.splice(items.indexOf("ContentItem"), 0, button);
+		config[key] = copy;
 		return true;
 	}
-	row = rowIndexWith("Html5video");
+	row = rowIndexWith(toolbar, "Html5video");
 	if (row !== -1) {
-		toolbar.splice(row + 1, 0, [button]);
+		var withGroup = copyOf(toolbar);
+		withGroup.splice(row + 1, 0, [button]);
+		config[key] = withGroup;
 		return true;
 	}
 	return false;

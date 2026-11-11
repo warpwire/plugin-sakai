@@ -8,8 +8,8 @@ Run by the CI release job for a version tag (v<semver>). It:
      which publish.sh dates; a pre-release falls back to "## [Unreleased]");
   3. waits until the tag has been mirrored to GitHub and points at the same
      commit CI built (fails if it points elsewhere, or doesn't arrive in time);
-  4. creates a draft release, uploads the WAR, the registration tool, the
-     README and SHA256SUMS, then publishes it. A pre-release version (3.1.0-rc.1) is
+  4. creates a draft release, uploads the zip and SHA256SUMS, then
+     publishes it. A pre-release version (3.1.0-rc.1) is
      published as a GitHub pre-release.
 
 It never overwrites a published release. A draft left behind by a failed run
@@ -95,8 +95,8 @@ def version_from_tag():
 
 
 def check_dist(version):
-    war = f"warpwire-sakai-{version}.war"
-    files = [war, "warpwire-register", "README.md", "SHA256SUMS"]
+    zip_name = f"warpwire-sakai-{version}.zip"
+    files = [zip_name, "SHA256SUMS"]
     for name in files:
         if not os.path.isfile(os.path.join(DIST, name)):
             fail(f"missing {DIST}/{name} (did the build job run for this tag?)")
@@ -105,7 +105,7 @@ def check_dist(version):
         for line in fh:
             digest, name = line.split()
             listed[name] = digest
-    for name in (war, "warpwire-register", "README.md"):
+    for name in (zip_name,):
         with open(os.path.join(DIST, name), "rb") as fh:
             actual = hashlib.sha256(fh.read()).hexdigest()
         if listed.get(name) != actual:

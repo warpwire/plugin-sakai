@@ -14,7 +14,7 @@
 #   2. finds the latest release tag (v<x.y.z>) and computes the next version;
 #   3. checks CHANGELOG.md has a non-empty "## [Unreleased]" section;
 #   4. shows the plan and asks you to confirm;
-#   5. sets NS.version in webapp/scripts/warpwire.js, renames the changelog's
+#   5. sets NS.version in plugin/webapps/portal/scripts/warpwire.js, renames the changelog's
 #      "## [Unreleased]" to "## [<version>] - <today>" (adding a fresh empty
 #      Unreleased section above it), and checks the release builds (./build.sh);
 #   6. commits "Release <version>" and creates the annotated tag v<version>.
@@ -32,7 +32,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")"
-RUNTIME="webapp/scripts/warpwire.js"
+RUNTIME="plugin/webapps/portal/scripts/warpwire.js"
 CHANGELOG="CHANGELOG.md"
 BRANCH="${RELEASE_BRANCH:-master}"
 REMOTE="${RELEASE_REMOTE:-origin}"
