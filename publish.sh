@@ -17,7 +17,8 @@
 #   5. sets NS.version in plugin/webapps/portal/scripts/warpwire.js, renames the changelog's
 #      "## [Unreleased]" to "## [<version>] - <today>" (adding a fresh empty
 #      Unreleased section above it), and checks the release builds (./build.sh);
-#   6. commits "Release <version>" and creates the annotated tag v<version>.
+#   6. commits "<version>" (GitLab's push rule accepts a version as the message)
+#      and creates the annotated tag v<version>.
 #
 # With --alpha, the version is the next one plus "-alpha.N" (N counts up from 1
 # for each alpha of that version, e.g. v3.1.0-alpha.1, v3.1.0-alpha.2). An alpha
@@ -188,13 +189,13 @@ CI_COMMIT_TAG="$TAG" ./build.sh >/dev/null
 
 # --- 6. Commit and tag ----------------------------------------------------
 git add "$RUNTIME" "$CHANGELOG"
-git commit --quiet -m "Release $next"
+git commit --quiet -m "$next"
 git tag -a "$TAG" -m "Warpwire Sakai plugin $next"
 trap - ERR
 
 cat <<EOF
 
-Created commit $(git rev-parse --short HEAD) "Release $next" and tag $TAG (not pushed).
+Created commit $(git rev-parse --short HEAD) "$next" and tag $TAG (not pushed).
 
 Review it, then push the commit and the tag together:
 

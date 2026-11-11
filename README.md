@@ -387,7 +387,7 @@ release, on an up-to-date `master` with a clean tree:
 It finds the latest release tag, proposes the next version, and shows the
 release notes. After you confirm, it sets `NS.version`, turns `Unreleased` into
 the dated `## [<version>]` section, checks that the release builds, and creates
-the commit `Release <version>` and the annotated tag. It doesn't push. Push the
+the commit `<version>` and the annotated tag. It doesn't push. Push the
 commit and tag together:
 
 ```sh
