@@ -12,6 +12,8 @@ tag for you to push. `./publish.sh minor --alpha` tags an alpha
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-11-11
+
 Verified against: Sakai 25.2.
 
 ### Install changes
