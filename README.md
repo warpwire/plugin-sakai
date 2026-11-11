@@ -14,7 +14,7 @@ through Sakai 25**.
 | Sakai | Status for this release |
 |---|---|
 | 25.2 | Verified |
-| 12 – 23 | Expected to work; not verified for this release. The `ckeditor.launch.js` edits for these versions are checked against Sakai 12.7 and 22.4's files by the tests. |
+| 12 – 25.1 | Expected to work; not verified for this release. The `ckeditor.launch.js` edits for these versions are checked against Sakai 12.7 and 22.4's files by the tests. |
 
 Each release's notes list the Sakai versions it was verified against.
 
@@ -339,8 +339,9 @@ watch the browser console for `[warpwire]` messages. Common cases:
    must come before `warpwirecontentitem.js`.
 4. Keep your Warpwire LTI 1.1 tool (step 5), restart Sakai, and verify (step 6).
 
-Embeds created by earlier versions continue to render; public legacy embeds
-play directly.
+Embeds inserted with 3.0.x keep playing. Embeds from the pre-3.0 plugin still
+render: public ones play directly, and restricted ones need to be inserted again
+from the editor (Warpwire button) before they can authenticate.
 
 **From the pre-3.0 plugin** (the `warpwire` plugin and the `sakai.warpwire` tool):
 remove the old tool from course Tools menus first, then remove

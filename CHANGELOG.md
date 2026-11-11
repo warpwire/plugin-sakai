@@ -70,6 +70,12 @@ and its line in `ckeditor.launch.js`; see the README.
 - Removed dead code and leaking event listeners; failures on the main paths
   are reported instead of silently swallowed.
 
+### Known issues
+
+- Restricted media embedded with the pre-3.0 plugin (not 3.0.x) renders but
+  can't authenticate. Insert it again from the editor. Public pre-3.0 embeds
+  play.
+
 ## [3.0.4] - 2024-05-16
 
 ### Fixed
